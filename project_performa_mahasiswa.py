@@ -36,7 +36,6 @@ if uploaded_file is not None:
 
 # Menampilkan 5 baris data pertama untuk verifikasi
 print("Tampilan Awal Dataset:")
-display(df.head())
 
 """Pra-pemrosesan Data (Data Preprocessing)Tahap ini membersihkan data, memastikan tidak ada nilai kosong (missing values), serta memisahkan variabel fitur input ($X$) dan variabel target kelas ($y$)."""
 
