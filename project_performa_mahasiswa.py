@@ -77,13 +77,13 @@ elif menu == "Prediksi Mandiri Mahasiswa":
                 gpa, 
                 stress_level
             ]], columns=[
-                'Study_hour_per_day', 
+                'Study_Hours_Per_Day',             # Sesuaikan huruf kapitalnya (misal: S besar)
                 'Extracurricular_Hours_Per_Day', 
                 'Sleep_Hours_Per_Day', 
                 'Social_Hours_Per_Day', 
                 'Physical_Activity_Hours_Per_Day', 
                 'GPA', 
-                'Stress_Level'
+                'Stress_Level'                     # Sesuaikan apakah pakai underscore atau huruf besar
             ])
             
             # Melakukan prediksi aman
