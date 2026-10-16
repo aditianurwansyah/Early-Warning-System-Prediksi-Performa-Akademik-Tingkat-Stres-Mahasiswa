@@ -84,7 +84,7 @@ feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': im
 feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
 
 print("Peringkat Dominasi Fitur Gaya Hidup terhadap Performa Mahasiswa:")
-display(feature_importance_df)
+st.dataframe(feature_importance_df)
 
 # Visualisasi Grafik Feature Importance
 plt.figure(figsize=(10, 5))
