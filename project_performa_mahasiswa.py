@@ -24,8 +24,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report, confusion_matrix
-from google.colab import files
-import io
 from pyngrok import ngrok
 
 """Memuat Dataset (Upload Dataset)
@@ -33,9 +31,11 @@ Gunakan skrip ini untuk mengunggah file dataset
 """
 
 # Mengambil nama file yang diunggah secara otomatis dan membacanya ke Pandas DataFrame
-uploaded = files.upload()
-filename = list(uploaded.keys())[0]
-df = pd.read_csv(io.BytesIO(uploaded[filename]))
+uploaded_file = st.file_uploader("Pilih file CSV dataset", type=["csv"])
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    st.write("Data berhasil dimuat!")
+    st.dataframe(df.head())
 
 # Menampilkan 5 baris data pertama untuk verifikasi
 print("Tampilan Awal Dataset:")
