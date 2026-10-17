@@ -115,10 +115,15 @@ elif menu == "Prediksi Mandiri Mahasiswa":
                     st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                     st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                 
-                # Menampilkan tingkat keyakinan model menggunakan st.dataframe()
+                # Menampilkan tingkat keyakinan model secara dinamis
                 st.write("---")
                 st.write("📊 **Tingkat Keyakinan Model (*Confidence Score*):**")
-                confidence_df = pd.DataFrame(prediction_proba, columns=['Probabilitas Aman', 'Probabilitas Berisiko'])
+                
+                # Menyesuaikan nama kolom secara otomatis berdasarkan jumlah kelas dari model
+                num_classes = prediction_proba.shape[1]
+                col_names = [f"Probabilitas Kelas {i}" for i in range(num_classes)]
+                
+                confidence_df = pd.DataFrame(prediction_proba, columns=col_names)
                 st.dataframe(confidence_df, use_container_width=True)
                 
             except Exception as e:
