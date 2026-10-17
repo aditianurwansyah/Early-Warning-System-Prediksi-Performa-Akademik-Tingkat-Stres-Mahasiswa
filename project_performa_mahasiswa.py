@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 st.title("🎓 Early Warning System: Prediksi Performa & Risiko Akademik Mahasiswa")
-st.markdown("Purwarupa sistem berbasis *Machine Learning* (Random Forest / XGBoost) untuk mendeteksi potensi keterlambatan studi mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
+st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi keterlambatan studi mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
 
 # Sidebar Navigasi Menu
 menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Tentang Dataset & Fitur"])
@@ -20,8 +20,7 @@ menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Ma
 # Fungsi untuk memuat model machine learning (.pkl)
 @st.cache_resource
 def load_model():
-    # Pastikan file model .pkl sudah di-upload ke repository GitHub Anda
-    model_path = 'model_rf.pkl' # Ganti dengan 'model_xgb.pkl' jika menggunakan XGBoost
+    model_path = 'model_rf.pkl' # Pastikan file .pkl sudah ada di repository GitHub
     if os.path.exists(model_path):
         return joblib.load(model_path)
     return None
@@ -38,7 +37,7 @@ if menu == "Beranda":
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric(label="Algoritma Utama", value="Random Forest & XGBoost")
+        st.metric(label="Algoritma Utama", value="Random Forest")
     with col2:
         st.metric(label="Variabel Analisis", value="7 Fitur Gaya Hidup")
     with col3:
@@ -46,10 +45,10 @@ if menu == "Beranda":
 
 elif menu == "Prediksi Mandiri Mahasiswa":
     st.subheader("Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
-    st.write("Silakan masukkan parameter gaya hidup mahasiswa di bawah ini untuk melihat hasil analisis risiko prediktif:")
+    st.write("Silakan masukkan parameter gaya hidup mahasiswa di bawah ini:")
 
     if model is None:
-        st.warning("⚠️ File model machine learning (`model_rf.pkl` atau `model_xgb.pkl`) belum ditemukan di repository GitHub Anda. Harap unggah file `.pkl` hasil pelatihan Google Colab ke dalam repository proyek ini.")
+        st.warning("⚠️ File model machine learning (`model_rf.pkl`) belum ditemukan di repository GitHub Anda. Pastikan file `.pkl` sudah diunggah ke root direktori repository.")
     else:
         # Form Input menggunakan Grid 2 Kolom
         col1, col2 = st.columns(2)
@@ -63,11 +62,25 @@ elif menu == "Prediksi Mandiri Mahasiswa":
         with col2:
             physical_activity = st.number_input("Jam Aktivitas Fisik per Hari", min_value=0.0, max_value=24.0, value=1.0, step=0.5)
             gpa = st.number_input("Indeks Prestasi Kumulatif / GPA Terakhir", min_value=0.0, max_value=4.0, value=3.25, step=0.01)
-            stress_level = st.slider("Tingkat Stres (Skala 1 s.d. 5)", min_value=1, max_value=5, value=2)
+            
+            # Pilihan Tingkat Stres dengan Keterangan Deskriptif yang Jelas
+            stress_option = st.selectbox(
+                "Tingkat Stres",
+                options=[
+                    (1, "1 - Sangat Rendah"),
+                    (2, "2 - Rendah"),
+                    (3, "3 - Sedang"),
+                    (4, "4 - Tinggi"),
+                    (5, "5 - Sangat Tinggi")
+                ],
+                format_func=lambda x: x[1],
+                index=2 # Default ke pilihan ke-3 (Sedang)
+            )
+            stress_level = stress_option[0] # Mengambil nilai angkanya (1-5)
 
         # Tombol Prediksi
         if st.button("Jalankan Analisis & Prediksi Risiko", type="primary"):
-            # Menyusun data ke dalam DataFrame sesuai urutan fitur pelatihan model
+            # Menyusun data ke dalam DataFrame
             input_data = pd.DataFrame([[
                 study_hour, 
                 extracurricular, 
@@ -77,19 +90,19 @@ elif menu == "Prediksi Mandiri Mahasiswa":
                 gpa, 
                 stress_level
             ]], columns=[
-                'Study_Hours_Per_Day',             # Sesuaikan huruf kapitalnya (misal: S besar)
+                'study_hour_per_day', 
                 'Extracurricular_Hours_Per_Day', 
                 'Sleep_Hours_Per_Day', 
                 'Social_Hours_Per_Day', 
                 'Physical_Activity_Hours_Per_Day', 
                 'GPA', 
-                'Stress_Level'                     # Sesuaikan apakah pakai underscore atau huruf besar
+                'Stress_Level'
             ])
             
-            # Melakukan prediksi aman
             try:
-                prediction = model.predict(input_data)
-                prediction_proba = model.predict_proba(input_data)
+                # Menggunakan .values agar model mengabaikan nama kolom dan langsung membaca deretan angka input
+                prediction = model.predict(input_data.values)
+                prediction_proba = model.predict_proba(input_data.values)
                 
                 st.markdown("---")
                 st.subheader("Hasil Analisis Sistem:")
@@ -102,7 +115,7 @@ elif menu == "Prediksi Mandiri Mahasiswa":
                     st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                     st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                 
-                # Menampilkan probabilitas keyakinan model menggunakan st.dataframe()
+                # Menampilkan tingkat keyakinan model menggunakan st.dataframe()
                 st.write("---")
                 st.write("📊 **Tingkat Keyakinan Model (*Confidence Score*):**")
                 confidence_df = pd.DataFrame(prediction_proba, columns=['Probabilitas Aman', 'Probabilitas Berisiko'])
@@ -117,7 +130,7 @@ elif menu == "Tentang Dataset & Fitur":
     
     features_info = pd.DataFrame({
         "Nama Fitur": [
-            "study_hour_per_day", 
+            "Study_Hours_Per_Day", 
             "Extracurricular_Hours_Per_Day", 
             "Sleep_Hours_Per_Day", 
             "Social_Hours_Per_Day", 
@@ -132,7 +145,7 @@ elif menu == "Tentang Dataset & Fitur":
             "Durasi waktu bersosialisasi dan rekreasi dalam sehari (Jam)",
             "Durasi waktu olahraga atau aktivitas fisik dalam sehari (Jam)",
             "Nilai Indeks Prestasi Kumulatif mahasiswa",
-            "Tingkat stres yang dirasakan (Skala 1 s.d. 5)"
+            "Tingkat stres: 1 (Sangat Rendah), 2 (Rendah), 3 (Sedang), 4 (Tinggi), 5 (Sangat Tinggi)"
         ]
     })
     st.dataframe(features_info, use_container_width=True)
