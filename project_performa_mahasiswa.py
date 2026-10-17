@@ -90,7 +90,7 @@ elif menu == "Prediksi Mandiri Mahasiswa":
                 gpa, 
                 stress_level
             ]], columns=[
-                'study_hour_per_day', 
+                'Study_Hours_Per_Day', 
                 'Extracurricular_Hours_Per_Day', 
                 'Sleep_Hours_Per_Day', 
                 'Social_Hours_Per_Day', 
