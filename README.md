@@ -37,7 +37,7 @@ Proyek ini dibangun menggunakan bahasa pemograman Python dengan pustaka-pustaka 
 * **Visualisasi Data**: `matplotlib`, `seaborn`
 * **Machine Learning**: `scikit-learn` (Random Forest, *Train-Test Split*, *Label Encoder*, Metrik Evaluasi), `xgboost`
 * **Penyimpanan Model**: `joblib`
-* **Deployment / Web App**: `streamlit`, `pyngrok`
+* **Deployment / Web App**: `streamlit`
 
 ---
 
@@ -46,4 +46,4 @@ Proyek ini dibangun menggunakan bahasa pemograman Python dengan pustaka-pustaka 
 ### 1. Prasyarat & Instalasi Pustaka
 Pastikan Anda telah memasang pustaka yang dibutuhkan dengan menjalankan perintah berikut di terminal atau lingkungan Google Colab:
 ```bash
-pip install pandas numpy matplotlib seaborn streamlit joblib scikit-learn xgboost pyngrok
+pip install pandas numpy matplotlib seaborn streamlit joblib scikit-learn xgboost 
