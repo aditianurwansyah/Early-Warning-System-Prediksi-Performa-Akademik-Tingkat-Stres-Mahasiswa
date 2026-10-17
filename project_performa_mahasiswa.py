@@ -20,7 +20,7 @@ menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Ma
 # Fungsi untuk memuat model machine learning (.pkl)
 @st.cache_resource
 def load_model():
-    model_path = 'model_rf.pkl' # Pastikan file .pkl sudah ada di repository GitHub
+    model_path = 'model_rf.pkl' # Pastikan file .pkl sudah ada di repository GitHub (bisa diganti model_xgb.pkl)
     if os.path.exists(model_path):
         return joblib.load(model_path)
     return None
@@ -35,13 +35,23 @@ if menu == "Beranda":
     atau keterlambatan studi secara proaktif.
     """)
     
+    st.markdown("---")
+    # Menggunakan card layout agar teks tidak terpotong
     col1, col2, col3 = st.columns(3)
+    
     with col1:
-        st.metric(label="Algoritma Utama", value="Random Forest")
+        st.markdown("### 🤖 Algoritma Utama")
+        st.info("**Random Forest & XGBoost**\n\nModel *Machine Learning* untuk klasifikasi tingkat risiko.")
+        
     with col2:
-        st.metric(label="Variabel Analisis", value="7 Fitur Gaya Hidup")
+        st.markdown("### 📊 Variabel Analisis")
+        st.info("**7 Fitur Gaya Hidup**\n\nJam belajar, tidur, aktivitas fisik, sosialisasi, ekstrakurikuler, GPA, & tingkat stres.")
+        
     with col3:
-        st.metric(label="Target Sistem", value="Mitigasi Risiko Akademik")
+        st.markdown("### 🎯 Target Sistem")
+        st.info("**Mitigasi Risiko Akademik**\n\nDeteksi dini potensi keterlambatan studi & penurunan performa mahasiswa.")
+    
+    st.markdown("---")
 
 elif menu == "Prediksi Mandiri Mahasiswa":
     st.subheader("Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
@@ -80,7 +90,7 @@ elif menu == "Prediksi Mandiri Mahasiswa":
 
         # Tombol Prediksi
         if st.button("Jalankan Analisis & Prediksi Risiko", type="primary"):
-            # Menyusun data ke dalam DataFrame
+            # Menyusun data ke dalam DataFrame (Tepat 7 Fitur)
             input_data = pd.DataFrame([[
                 study_hour, 
                 extracurricular, 
@@ -100,29 +110,26 @@ elif menu == "Prediksi Mandiri Mahasiswa":
             ])
             
             try:
-                # Menggunakan .values agar model mengabaikan nama kolom dan langsung membaca deretan angka input
+                # Menggunakan .values untuk menghindari feature name mismatch
                 prediction = model.predict(input_data.values)
                 prediction_proba = model.predict_proba(input_data.values)
                 
                 st.markdown("---")
                 st.subheader("Hasil Analisis Sistem:")
                 
-                # Asumsi label: 0 = Aman / Lulus Tepat Waktu, 1 = Berisiko Tinggi
-                if prediction[0] == 1:
+                # Menampilkan status berdasarkan hasil prediksi model
+                if prediction[0] == 1 or prediction[0] > 0:
                     st.error("⚠️ **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
                     st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling akademik dengan dosen wali, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
                 else:
                     st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                     st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                 
-                # Menampilkan tingkat keyakinan model secara dinamis
+                # Menampilkan tingkat keyakinan model secara dinamis (mencegah error shape mismatch)
                 st.write("---")
                 st.write("📊 **Tingkat Keyakinan Model (*Confidence Score*):**")
-                
-                # Menyesuaikan nama kolom secara otomatis berdasarkan jumlah kelas dari model
                 num_classes = prediction_proba.shape[1]
-                col_names = [f"Probabilitas Kelas {i}" for i in range(num_classes)]
-                
+                col_names = [f"Kelas {i} (Probabilitas)" for i in range(num_classes)]
                 confidence_df = pd.DataFrame(prediction_proba, columns=col_names)
                 st.dataframe(confidence_df, use_container_width=True)
                 
