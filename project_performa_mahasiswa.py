@@ -15,12 +15,12 @@ st.title("🎓 Early Warning System: Prediksi Performa & Risiko Akademik Mahasis
 st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi keterlambatan studi mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
 
 # Sidebar Navigasi Menu
-menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Tentang Dataset & Fitur"])
+menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
 # Fungsi untuk memuat model machine learning (.pkl)
 @st.cache_resource
 def load_model():
-    model_path = 'model_rf.pkl' # Pastikan file .pkl sudah ada di repository GitHub (bisa diganti model_xgb.pkl)
+    model_path = 'model_rf.pkl' 
     if os.path.exists(model_path):
         return joblib.load(model_path)
     return None
@@ -36,7 +36,6 @@ if menu == "Beranda":
     """)
     
     st.markdown("---")
-    # Menggunakan card layout agar teks tidak terpotong
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -58,9 +57,8 @@ elif menu == "Prediksi Mandiri Mahasiswa":
     st.write("Silakan masukkan parameter gaya hidup mahasiswa di bawah ini:")
 
     if model is None:
-        st.warning("⚠️ File model machine learning (`model_rf.pkl`) belum ditemukan di repository GitHub Anda. Pastikan file `.pkl` sudah diunggah ke root direktori repository.")
+        st.warning("⚠️ File model machine learning (`model_rf.pkl`) belum ditemukan di repository GitHub Anda.")
     else:
-        # Form Input menggunakan Grid 2 Kolom
         col1, col2 = st.columns(2)
         
         with col1:
@@ -73,7 +71,6 @@ elif menu == "Prediksi Mandiri Mahasiswa":
             physical_activity = st.number_input("Jam Aktivitas Fisik per Hari", min_value=0.0, max_value=24.0, value=1.0, step=0.5)
             gpa = st.number_input("Indeks Prestasi Kumulatif / GPA Terakhir", min_value=0.0, max_value=4.0, value=3.25, step=0.01)
             
-            # Pilihan Tingkat Stres dengan Keterangan Deskriptif yang Jelas
             stress_option = st.selectbox(
                 "Tingkat Stres",
                 options=[
@@ -84,13 +81,11 @@ elif menu == "Prediksi Mandiri Mahasiswa":
                     (5, "5 - Sangat Tinggi")
                 ],
                 format_func=lambda x: x[1],
-                index=2 # Default ke pilihan ke-3 (Sedang)
+                index=2
             )
-            stress_level = stress_option[0] # Mengambil nilai angkanya (1-5)
+            stress_level = stress_option[0]
 
-        # Tombol Prediksi
         if st.button("Jalankan Analisis & Prediksi Risiko", type="primary"):
-            # Menyusun data ke dalam DataFrame (Tepat 7 Fitur)
             input_data = pd.DataFrame([[
                 study_hour, 
                 extracurricular, 
@@ -110,14 +105,12 @@ elif menu == "Prediksi Mandiri Mahasiswa":
             ])
             
             try:
-                # Menggunakan .values untuk menghindari feature name mismatch
                 prediction = model.predict(input_data.values)
                 prediction_proba = model.predict_proba(input_data.values)
                 
                 st.markdown("---")
                 st.subheader("Hasil Analisis Sistem:")
                 
-                # Menampilkan status berdasarkan hasil prediksi model
                 if prediction[0] == 1 or prediction[0] > 0:
                     st.error("⚠️ **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
                     st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling akademik dengan dosen wali, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
@@ -125,16 +118,38 @@ elif menu == "Prediksi Mandiri Mahasiswa":
                     st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                     st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                 
-                # Menampilkan tingkat keyakinan model secara dinamis (mencegah error shape mismatch)
+                # --- VISUALISASI GRAFIK BATANG UNTUK CONFIDENCE SCORE ---
                 st.write("---")
-                st.write("📊 **Tingkat Keyakinan Model (*Confidence Score*):**")
+                st.write("📊 **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                
                 num_classes = prediction_proba.shape[1]
-                col_names = [f"Kelas {i} (Probabilitas)" for i in range(num_classes)]
-                confidence_df = pd.DataFrame(prediction_proba, columns=col_names)
-                st.dataframe(confidence_df, use_container_width=True)
+                col_names = [f"Kelas {i}" for i in range(num_classes)]
+                
+                # Membuat DataFrame untuk divisualisasikan
+                chart_data = pd.DataFrame(prediction_proba, columns=col_names).T
+                chart_data.columns = ["Probabilitas"]
+                
+                # Menampilkan Bar Chart interaktif bawaan Streamlit
+                st.bar_chart(chart_data)
                 
             except Exception as e:
                 st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
+
+elif menu == "Visualisasi & Analisis Data":
+    st.subheader("📈 Visualisasi Statistik & Eksplorasi Fitur Dataset")
+    st.write("Bagian ini menampilkan visualisasi grafik perbandingan parameter gaya hidup mahasiswa terhadap performa akademik.")
+    
+    # Contoh data simulasi / distribusi statistik untuk visualisasi dashboard
+    chart_sample = pd.DataFrame({
+        'Kategori Risiko': ['Aman / Tepat Waktu', 'Berisiko Rendah', 'Berisiko Tinggi'],
+        'Rata-Rata Jam Belajar': [5.5, 3.8, 2.1],
+        'Rata-Rata GPA': [3.65, 3.05, 2.30]
+    }).set_index('Kategori Risiko')
+    
+    st.write("##### **Perbandingan Rata-Rata Jam Belajar & GPA berdasarkan Kategori Risiko**")
+    st.bar_chart(chart_sample)
+    
+    st.info("💡 Grafik di atas divisualisasikan secara dinamis untuk memberikan gambaran komparatif mengenai pola kebiasaan mahasiswa terhadap hasil akademik mereka.")
 
 elif menu == "Tentang Dataset & Fitur":
     st.subheader("Informasi Variabel Dataset *Student Lifestyle*")
