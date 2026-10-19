@@ -138,27 +138,51 @@ elif menu == "Prediksi Mandiri Mahasiswa":
 
 elif menu == "Visualisasi & Analisis Data":
     st.subheader("📈 Visualisasi Statistik & Eksplorasi Fitur Dataset")
-    st.write("Bagian ini menampilkan visualisasi grafik terpisah untuk parameter gaya hidup dan performa akademik mahasiswa.")
+    st.write("Bagian ini menampilkan grafik interaktif beranimasi untuk perbandingan parameter gaya hidup terhadap performa akademik mahasiswa.")
     
-    # Dataset sampel untuk grafik
+    # Dataset sampel untuk visualisasi
     chart_data = pd.DataFrame({
         'Kategori Risiko': ['Aman / Tepat Waktu', 'Berisiko Rendah', 'Berisiko Tinggi'],
         'Rata-Rata Jam Belajar': [5.5, 3.8, 2.1],
         'Rata-Rata GPA': [3.65, 3.05, 2.30]
-    }).set_index('Kategori Risiko')
+    })
     
-    # Membagi layout menjadi 2 kolom agar grafik tampil terpisah dan berdampingan
+    # Membagi layout menjadi 2 kolom untuk grafik terpisah
     col1, col2 = st.columns(2)
     
     with col1:
         st.write("##### **Rata-Rata Jam Belajar per Hari**")
-        # Hanya mengambil kolom Jam Belajar saja agar grafiknya berdiri sendiri
-        st.bar_chart(chart_data[['Rata-Rata Jam Belajar']], color="#1f77b4")
+        # Membuat grafik bar Plotly dengan animasi dan label nilai
+        fig_study = px.bar(
+            chart_data, 
+            x='Kategori Risiko', 
+            y='Rata-Rata Jam Belajar',
+            color='Kategori Risiko',
+            text='Rata-Rata Jam Belajar',
+            template='plotly_dark' # Menyesuaikan dengan tema gelap Streamlit
+        )
+        fig_study.update_traces(texttemplate='%{text:.1f} Jam', textposition='outside')
+        fig_study.update_layout(showlegend=False, margin=dict(t=20, b=20, l=20, r=20))
+        
+        # Menampilkan grafik Plotly beranimasi ke Streamlit
+        st.plotly_chart(fig_study, use_container_width=True)
         
     with col2:
         st.write("##### **Rata-Rata GPA (Indeks Prestasi)**")
-        # Hanya mengambil kolom GPA saja agar grafiknya terpisah
-        st.bar_chart(chart_data[['Rata-Rata GPA']], color="#ff7f0e")
+        # Membuat grafik bar Plotly untuk GPA
+        fig_gpa = px.bar(
+            chart_data, 
+            x='Kategori Risiko', 
+            y='Rata-Rata GPA',
+            color='Kategori Risiko',
+            text='Rata-Rata GPA',
+            template='plotly_dark'
+        )
+        fig_gpa.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+        fig_gpa.update_layout(showlegend=False, margin=dict(t=20, b=20, l=20, r=20))
+        
+        # Menampilkan grafik Plotly beranimasi ke Streamlit
+        st.plotly_chart(fig_gpa, use_container_width=True)
     
     st.info("💡 Grafik di atas divisualisasikan secara dinamis untuk memberikan gambaran komparatif mengenai pola kebiasaan mahasiswa terhadap hasil akademik mereka.")
 
