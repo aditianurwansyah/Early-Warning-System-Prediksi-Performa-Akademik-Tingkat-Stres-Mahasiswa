@@ -137,17 +137,27 @@ elif menu == "Prediksi Mandiri Mahasiswa":
 
 elif menu == "Visualisasi & Analisis Data":
     st.subheader("📈 Visualisasi Statistik & Eksplorasi Fitur Dataset")
-    st.write("Bagian ini menampilkan visualisasi grafik perbandingan parameter gaya hidup mahasiswa terhadap performa akademik.")
+    st.write("Bagian ini menampilkan visualisasi grafik terpisah untuk parameter gaya hidup dan performa akademik mahasiswa.")
     
-    # Contoh data simulasi / distribusi statistik untuk visualisasi dashboard
-    chart_sample = pd.DataFrame({
+    # Dataset sampel untuk grafik
+    chart_data = pd.DataFrame({
         'Kategori Risiko': ['Aman / Tepat Waktu', 'Berisiko Rendah', 'Berisiko Tinggi'],
         'Rata-Rata Jam Belajar': [5.5, 3.8, 2.1],
         'Rata-Rata GPA': [3.65, 3.05, 2.30]
     }).set_index('Kategori Risiko')
     
-    st.write("##### **Perbandingan Rata-Rata Jam Belajar & GPA berdasarkan Kategori Risiko**")
-    st.bar_chart(chart_sample)
+    # Membagi layout menjadi 2 kolom agar grafik tampil terpisah dan berdampingan
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("##### **Rata-Rata Jam Belajar per Hari**")
+        # Hanya mengambil kolom Jam Belajar saja agar grafiknya berdiri sendiri
+        st.bar_chart(chart_data[['Rata-Rata Jam Belajar']], color="#1f77b4")
+        
+    with col2:
+        st.write("##### **Rata-Rata GPA (Indeks Prestasi)**")
+        # Hanya mengambil kolom GPA saja agar grafiknya terpisah
+        st.bar_chart(chart_data[['Rata-Rata GPA']], color="#ff7f0e")
     
     st.info("💡 Grafik di atas divisualisasikan secara dinamis untuk memberikan gambaran komparatif mengenai pola kebiasaan mahasiswa terhadap hasil akademik mereka.")
 
