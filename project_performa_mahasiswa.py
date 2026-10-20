@@ -82,7 +82,7 @@ else:
     # PENGATURAN MENU UTAMA (HANYA SATU SELECTBOX BERDASARKAN PERAN)
     # -------------------------------------------------------------------------
     if st.session_state.user_role == "Mahasiswa":
-        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Visualisasi & Analisis Data"])
     else:
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
