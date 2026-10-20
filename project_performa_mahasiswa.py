@@ -30,7 +30,7 @@ USERS = {
 }
 
 def login_form():
-    st.markdown("<h2 style='text-align: center;'>🔐 Login Sistem Early Warning System</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🔐 Login Sistem Early Warning</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>Silakan masuk menggunakan akun terdaftar untuk mengakses dashboard analitik.</p>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
