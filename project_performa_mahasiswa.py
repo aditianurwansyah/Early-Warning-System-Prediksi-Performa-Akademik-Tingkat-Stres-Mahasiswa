@@ -8,7 +8,6 @@ import plotly.express as px
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
     page_title="Early Warning System Performa Mahasiswa",
-    page_icon="🎓",
     layout="wide"
 )
 
@@ -30,7 +29,7 @@ USERS = {
 }
 
 def login_form():
-    st.markdown("<h2 style='text-align: center;'>🔐 Login Sistem Early Warning</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'> Login Sistem Early Warning</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align: center;'>Silakan masuk menggunakan akun terdaftar untuk mengakses dashboard analitik.</p>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -45,10 +44,10 @@ def login_form():
                     st.session_state.logged_in = True
                     st.session_state.username = username_input
                     st.session_state.user_role = USERS[username_input]["role"]
-                    st.success("✅ Login berhasil! Memuat sistem...")
+                    st.success("Login berhasil! Memuat sistem...")
                     st.rerun()
                 else:
-                    st.error("⚠️ Username atau Password tidak valid!")
+                    st.error(" Username atau Password tidak valid!")
 
 def logout():
     st.session_state.logged_in = False
@@ -67,15 +66,15 @@ else:
     # -------------------------------------------------------------------------
     
     # Sidebar Informasi Pengguna & Tombol Logout
-    st.sidebar.markdown(f"👤 **Pengguna:** `{st.session_state.username.upper()}`")
-    st.sidebar.markdown(f"🛡️ **Peran:** `{st.session_state.user_role}`")
+    st.sidebar.markdown(f" **Pengguna:** `{st.session_state.username.upper()}`")
+    st.sidebar.markdown(f" **Peran:** `{st.session_state.user_role}`")
     
-    if st.sidebar.button("🚪 Logout / Keluar", type="secondary"):
+    if st.sidebar.button(" Logout / Keluar", type="secondary"):
         logout()
         
     st.sidebar.markdown("---")
 
-    st.title("🎓 Early Warning System: Prediksi Performa & Risiko Akademik Mahasiswa")
+    st.title(" Early Warning System: Prediksi Performa & Risiko Akademik Mahasiswa")
     st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi keterlambatan studi mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
 
     # -------------------------------------------------------------------------
@@ -108,15 +107,15 @@ else:
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown("### 🤖 Algoritma Utama")
+            st.markdown("###  Algoritma Utama")
             st.info("**Random Forest & XGBoost**\n\nModel *Machine Learning* untuk klasifikasi tingkat risiko.")
             
         with col2:
-            st.markdown("### 📊 Variabel Analisis")
+            st.markdown("###  Variabel Analisis")
             st.info("**7 Fitur Gaya Hidup**\n\nJam belajar, tidur, aktivitas fisik, sosialisasi, ekstrakurikuler, GPA, & tingkat stres.")
             
         with col3:
-            st.markdown("### 🎯 Target Sistem")
+            st.markdown("###  Target Sistem")
             st.info("**Mitigasi Risiko Akademik**\n\nDeteksi dini potensi keterlambatan studi & penurunan performa mahasiswa.")
         
         st.markdown("---")
@@ -126,7 +125,7 @@ else:
         st.write("Silakan masukkan parameter gaya hidup mahasiswa di bawah ini:")
 
         if model is None:
-            st.warning("⚠️ File model machine learning (`model_rf.pkl`) belum ditemukan di repository GitHub Anda.")
+            st.warning(" File model machine learning (`model_rf.pkl`) belum ditemukan di repository GitHub Anda.")
         else:
             col1, col2 = st.columns(2)
             
@@ -181,15 +180,15 @@ else:
                     st.subheader("Hasil Analisis Sistem:")
                     
                     if prediction[0] == 1 or prediction[0] > 0:
-                        st.error("⚠️ **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
+                        st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
                         st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling akademik dengan dosen wali, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
                     else:
-                        st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
+                        st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                     
                     # --- VISUALISASI GRAFIK BATANG UNTUK CONFIDENCE SCORE ---
                     st.write("---")
-                    st.write("📊 **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                    st.write(" **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
                     
                     num_classes = prediction_proba.shape[1]
                     col_names = [f"Kelas {i}" for i in range(num_classes)]
@@ -203,7 +202,7 @@ else:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
 
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader("📈 Visualisasi Statistik & Eksplorasi Fitur Dataset")
+        st.subheader(" Visualisasi Statistik & Eksplorasi Fitur Dataset")
         st.write("Bagian ini menampilkan grafik interaktif beranimasi untuk perbandingan parameter gaya hidup terhadap performa akademik mahasiswa.")
         
         chart_data = pd.DataFrame({
@@ -244,7 +243,7 @@ else:
             
             st.plotly_chart(fig_gpa, use_container_width=True)
         
-        st.info("💡 Grafik di atas divisualisasikan secara dinamis untuk memberikan gambaran komparatif mengenai pola kebiasaan mahasiswa terhadap hasil akademik mereka.")
+        st.info(" Grafik di atas divisualisasikan secara dinamis untuk memberikan gambaran komparatif mengenai pola kebiasaan mahasiswa terhadap hasil akademik mereka.")
 
     elif menu == "Tentang Dataset & Fitur":
         st.subheader("Informasi Variabel Dataset *Student Lifestyle*")
