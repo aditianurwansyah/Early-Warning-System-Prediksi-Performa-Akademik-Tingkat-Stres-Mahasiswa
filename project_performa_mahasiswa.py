@@ -8,7 +8,7 @@ import plotly.express as px
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
     page_title="Early Warning System Performa Mahasiswa",
-    page_icon="campus.png"
+    page_icon="https://cdn-icons-png.flaticon.com/512/8716/8716565.png"
     layout="wide"
 )
 
