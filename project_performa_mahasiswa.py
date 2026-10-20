@@ -81,6 +81,16 @@ else:
     # Sidebar Navigasi Menu
     menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
+    # -------------------------------------------------------------------------
+    # PENGATURAN HAK AKSES MENU BERDASARKAN PERAN (RBAC)
+    # -------------------------------------------------------------------------
+    if st.session_state.user_role == "Mahasiswa":
+        # Jika yang login adalah Mahasiswa, batasi pilihan menu (Tanpa Prediksi Mandiri)
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
+    else:
+        # Jika yang login adalah Dosen atau Admin, akses menu terbuka penuh
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
+
     # Fungsi untuk memuat model machine learning (.pkl)
     @st.cache_resource
     def load_model():
