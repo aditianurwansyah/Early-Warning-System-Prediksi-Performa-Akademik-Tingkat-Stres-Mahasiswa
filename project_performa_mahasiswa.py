@@ -22,7 +22,7 @@ if 'user_role' not in st.session_state:
 if 'username' not in st.session_state:
     st.session_state.username = None
 
-# Kredensial pengguna sederhana (dapat dikembangkan menggunakan basis data)
+# Kredensial pengguna sederhana
 USERS = {
     "dosen": {"password": "dosen123", "role": "Dosen / Pengelola Akademik"},
     "admin": {"password": "admin123", "role": "Administrator"},
@@ -78,17 +78,12 @@ else:
     st.title("🎓 Early Warning System: Prediksi Performa & Risiko Akademik Mahasiswa")
     st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi keterlambatan studi mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
 
-    # Sidebar Navigasi Menu
-    menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
-
     # -------------------------------------------------------------------------
-    # PENGATURAN HAK AKSES MENU BERDASARKAN PERAN (RBAC)
+    # PENGATURAN MENU UTAMA (HANYA SATU SELECTBOX BERDASARKAN PERAN)
     # -------------------------------------------------------------------------
     if st.session_state.user_role == "Mahasiswa":
-        # Jika yang login adalah Mahasiswa, batasi pilihan menu (Tanpa Prediksi Mandiri)
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
     else:
-        # Jika yang login adalah Dosen atau Admin, akses menu terbuka penuh
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
     # Fungsi untuk memuat model machine learning (.pkl)
