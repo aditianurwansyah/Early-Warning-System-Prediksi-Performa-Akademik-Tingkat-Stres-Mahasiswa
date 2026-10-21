@@ -1,12 +1,10 @@
-# Early-Warning-System-Prediksi-Performa-Akademik-Tingkat-Stres-Mahasiswa
-
-# 🎓 Early Warning System: Prediksi Performa Akademik & Tingkat Stres Mahasiswa
+# Early Warning System: Prediksi Performa Akademik & Tingkat Stres Mahasiswa
 
 Proyek penelitian *machine learning* ini dikembangkan sebagai bagian dari tahapan pra-skripsi hingga skripsi. Sistem ini dirancang sebagai **Early Warning System (Sistem Peringatan Dini)** untuk mendeteksi secara proaktif tingkat stres dan potensi risiko akademik mahasiswa berdasarkan faktor gaya hidup sehari-hari serta pencapaian akademik (IPK).
 
 ---
 
-## 🚀 Fitur Utama
+## Fitur Utama
 1. **Data Preprocessing & Cleaning**: Pemeriksaan *missing values*, pemisahan fitur dan variabel target, serta *encoding* label kategorikal secara otomatis.
 2. **Feature Selection (Random Forest Importance)**: Menganalisis atribut gaya hidup mana yang paling dominan memengaruhi kondisi atau performa mahasiswa melalui visualisasi tingkat kepentingan fitur (*feature importance*).
 3. **Model Machine Learning Ensemble**: Mengimplementasikan dan membandingkan dua algoritma klasifikasi tangguh:
@@ -17,7 +15,7 @@ Proyek penelitian *machine learning* ini dikembangkan sebagai bagian dari tahapa
 
 ---
 
-## 📊 Atribut Dataset & Fitur
+## Atribut Dataset & Fitur
 Fitur input ($X$) yang digunakan dalam analisis meliputi:
 * `Study_Hours_Per_Day`: Durasi waktu belajar per hari (jam)
 * `Extracurricular_Hours_Per_Day`: Durasi kegiatan ekstrakurikuler per hari (jam)
@@ -31,7 +29,7 @@ Variabel Target ($y$):
 
 ---
 
-## 🛠️ Pustaka (Libraries) yang Digunakan
+## Pustaka (Libraries) yang Digunakan
 Proyek ini dibangun menggunakan bahasa pemograman Python dengan pustaka-pustaka berikut:
 * **Manipulasi & Analisis Data**: `pandas`, `numpy`
 * **Visualisasi Data**: `matplotlib`, `seaborn`
