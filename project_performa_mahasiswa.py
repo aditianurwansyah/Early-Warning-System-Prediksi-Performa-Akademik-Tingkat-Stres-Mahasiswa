@@ -79,12 +79,12 @@ else:
     st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi keterlambatan studi mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
 
     # -------------------------------------------------------------------------
-    # PENGATURAN MENU UTAMA (HANYA SATU SELECTBOX BERDASARKAN PERAN)
+    # PENGATURAN MENU UTAMA BERDASARKAN PERAN (RBAC)
     # -------------------------------------------------------------------------
     if st.session_state.user_role == "Mahasiswa":
-        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Visualisasi & Analisis Data"])
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data"])
     else:
-        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
     # Fungsi untuk memuat model machine learning (.pkl)
     @st.cache_resource
@@ -123,10 +123,10 @@ else:
 
     elif menu == "Prediksi Mandiri Mahasiswa":
         st.subheader("Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
-        st.write("Silakan masukkan parameter gaya hidup mahasiswa di bawah ini:")
+        st.write("Silakan masukkan parameter gaya hidup Anda di bawah ini:")
 
         if model is None:
-            st.warning(" File model machine learning (`model_rf.pkl`) belum ditemukan di repository GitHub Anda.")
+            st.warning(" File model machine learning (`model_rf.pkl`) belum ditemukan di direktori Anda.")
         else:
             col1, col2 = st.columns(2)
             
@@ -172,49 +172,73 @@ else:
                     'GPA', 
                     'Stress_Level'
                 ])
+                
                 try:
                     prediction = model.predict(input_data.values)
                     prediction_proba = model.predict_proba(input_data.values)
-                    # Menyimpan hasil ke file CSV agar bisa dilihat oleh Dosen
-result_record = {
-    'Username': st.session_state.username,
-    'Timestamp': pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
-    'GPA': gpa,
-    'Study_Hours': study_hour,
-    'Stress_Level': stress_level,
-    'Prediction': "Berisiko Tinggi" if (prediction[0] == 1 or prediction[0] > 0) else "Aman"
-}
-# Simpan ke CSV (append mode)
-csv_file = 'student_predictions.csv'
-df_record = pd.DataFrame([result_record])
-if not os.path.exists(csv_file):
-    df_record.to_csv(csv_file, index=False)
-else:
-    df_record.to_csv(csv_file, mode='a', header=False, index=False)
+                    
+                    is_risky = (prediction[0] == 1 or prediction[0] > 0)
+                    status_str = "Berisiko Tinggi" if is_risky else "Aman"
+
+                    # SIMPAN HASIL KE CSV (SUPAYA DOSEN BISA MEMANTAU)
+                    result_record = {
+                        'Username': st.session_state.username,
+                        'Timestamp': pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'GPA': gpa,
+                        'Study_Hours': study_hour,
+                        'Stress_Level': stress_level,
+                        'Prediction': status_str
+                    }
+                    csv_file = 'student_predictions.csv'
+                    df_record = pd.DataFrame([result_record])
+                    if not os.path.exists(csv_file):
+                        df_record.to_csv(csv_file, index=False)
+                    else:
+                        df_record.to_csv(csv_file, mode='a', header=False, index=False)
+
                     st.markdown("---")
                     st.subheader("Hasil Analisis Sistem:")
                     
-                    if prediction[0] == 1 or prediction[0] > 0:
+                    if is_risky:
                         st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
                         st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling akademik dengan dosen wali, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
                     else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                     
-                    # --- VISUALISASI GRAFIK BATANG UNTUK CONFIDENCE SCORE ---
+                    # Visualisasi Confidence Score
                     st.write("---")
                     st.write(" **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
-                    
                     num_classes = prediction_proba.shape[1]
                     col_names = [f"Kelas {i}" for i in range(num_classes)]
-                    
                     chart_data = pd.DataFrame(prediction_proba, columns=col_names).T
                     chart_data.columns = ["Probabilitas"]
-                    
                     st.bar_chart(chart_data)
                     
                 except Exception as e:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
+
+    elif menu == "Monitoring Mahasiswa Berisiko":
+        st.subheader(" Dashboard Monitoring Dosen: Daftar Mahasiswa Berisiko")
+        st.write("Berikut adalah rekapitulasi data mahasiswa yang telah mengisi *Formulir Evaluasi Gaya Hidup & Prediksi Risiko*:")
+
+        csv_file = 'student_predictions.csv'
+        if os.path.exists(csv_file):
+            df_submissions = pd.read_csv(csv_file)
+            
+            # Filter berdasarkan status risiko
+            risk_filter = st.selectbox("Filter Berdasarkan Status Risiko:", ["Semua Data", "Berisiko Tinggi", "Aman"])
+            if risk_filter == "Berisiko Tinggi":
+                df_filtered = df_submissions[df_submissions['Prediction'] == "Berisiko Tinggi"]
+            elif risk_filter == "Aman":
+                df_filtered = df_submissions[df_submissions['Prediction'] == "Aman"]
+            else:
+                df_filtered = df_submissions
+
+            st.dataframe(df_filtered, use_container_width=True)
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Dosen dapat memprioritaskan bimbingan bagi mahasiswa yang berstatus **Berisiko Tinggi**.")
+        else:
+            st.info("Belum ada data pengisian formulir dari mahasiswa. Data akan muncul di sini setelah mahasiswa melakukan prediksi mandiri.")
 
     elif menu == "Visualisasi & Analisis Data":
         st.subheader(" Visualisasi Statistik & Eksplorasi Fitur Dataset")
@@ -240,7 +264,6 @@ else:
             )
             fig_study.update_traces(texttemplate='%{text:.1f} Jam', textposition='outside')
             fig_study.update_layout(showlegend=False, margin=dict(t=20, b=20, l=20, r=20))
-            
             st.plotly_chart(fig_study, use_container_width=True)
             
         with col2:
@@ -255,7 +278,6 @@ else:
             )
             fig_gpa.update_traces(texttemplate='%{text:.2f}', textposition='outside')
             fig_gpa.update_layout(showlegend=False, margin=dict(t=20, b=20, l=20, r=20))
-            
             st.plotly_chart(fig_gpa, use_container_width=True)
         
         st.info(" Grafik di atas divisualisasikan secara dinamis untuk memberikan gambaran komparatif mengenai pola kebiasaan mahasiswa terhadap hasil akademik mereka.")
