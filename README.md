@@ -13,7 +13,7 @@ Proyek penelitian *machine learning* ini dikembangkan sebagai bagian dari tahapa
    - **Random Forest Classifier**
    - **XGBoost Classifier**
 4. **Evaluasi Performa Komprehensif**: Pengukuran metrik evaluasi meliputi *Accuracy*, *Precision*, *Recall*, dan *F1-Score*, serta visualisasi *Confusion Matrix* berdampingan untuk perbandingan performa model.
-5. **Interactive Dashboard (Streamlit)**: Antarmuka web interaktif yang memungkinkan pemantauan atau evaluasi mandiri bagi dosen pembimbing maupun mahasiswa.
+5. **Interactive Dashboard (Streamlit)**: Antarmuka web interaktif yang memungkinkan pemantauan atau evaluasi mandiri bagi dosen wali dan pembimbing.
 
 ---
 
