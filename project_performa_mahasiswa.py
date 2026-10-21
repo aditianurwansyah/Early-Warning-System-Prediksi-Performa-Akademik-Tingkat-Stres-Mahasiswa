@@ -172,6 +172,23 @@ else:
                     'GPA', 
                     'Stress_Level'
                 ])
+             
+                # Menyimpan hasil ke file CSV agar bisa dilihat oleh Dosen
+result_record = {
+    'Username': st.session_state.username,
+    'Timestamp': pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+    'GPA': gpa,
+    'Study_Hours': study_hour,
+    'Stress_Level': stress_level,
+    'Prediction': "Berisiko Tinggi" if (prediction[0] == 1 or prediction[0] > 0) else "Aman"
+}
+# Simpan ke CSV (append mode)
+csv_file = 'student_predictions.csv'
+df_record = pd.DataFrame([result_record])
+if not os.path.exists(csv_file):
+    df_record.to_csv(csv_file, index=False)
+else:
+    df_record.to_csv(csv_file, mode='a', header=False, index=False)
                 
                 try:
                     prediction = model.predict(input_data.values)
