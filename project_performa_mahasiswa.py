@@ -172,8 +172,10 @@ else:
                     'GPA', 
                     'Stress_Level'
                 ])
-             
-                # Menyimpan hasil ke file CSV agar bisa dilihat oleh Dosen
+                try:
+                    prediction = model.predict(input_data.values)
+                    prediction_proba = model.predict_proba(input_data.values)
+                    # Menyimpan hasil ke file CSV agar bisa dilihat oleh Dosen
 result_record = {
     'Username': st.session_state.username,
     'Timestamp': pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -189,11 +191,6 @@ if not os.path.exists(csv_file):
     df_record.to_csv(csv_file, index=False)
 else:
     df_record.to_csv(csv_file, mode='a', header=False, index=False)
-                
-                try:
-                    prediction = model.predict(input_data.values)
-                    prediction_proba = model.predict_proba(input_data.values)
-                    
                     st.markdown("---")
                     st.subheader("Hasil Analisis Sistem:")
                     
