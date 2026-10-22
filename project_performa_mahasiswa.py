@@ -76,7 +76,7 @@ else:
     st.sidebar.markdown("---")
 
     st.title(" Early Warning System: Prediksi Performa & Risiko Akademik Mahasiswa")
-    st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi keterlambatan studi mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
+    st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi tingkat stress mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
 
     # -------------------------------------------------------------------------
     # PENGATURAN MENU UTAMA BERDASARKAN PERAN (RBAC)
@@ -201,7 +201,7 @@ else:
                     
                     if is_risky:
                         st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
-                        st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling akademik dengan dosen wali, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
+                        st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling diruang BK, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
                     else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
