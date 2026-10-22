@@ -24,7 +24,7 @@ if 'username' not in st.session_state:
 
 # Kredensial pengguna sederhana
 USERS = {
-    "dosen": {"password": "dosen123", "role": "Dosen / Pengelola Akademik"},
+    "BK": {"password": "BK123", "role": "Konsultasi BK"},
     "admin": {"password": "admin123", "role": "Administrator"},
     "mahasiswa": {"password": "mhs123", "role": "Mahasiswa"}
 }
