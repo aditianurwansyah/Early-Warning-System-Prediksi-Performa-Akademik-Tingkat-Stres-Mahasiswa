@@ -264,7 +264,7 @@ else:
                     
                     if is_risky:
                         st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
-                        st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling di ruang BK, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
+                        st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling di ruang BK.")
                     else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
