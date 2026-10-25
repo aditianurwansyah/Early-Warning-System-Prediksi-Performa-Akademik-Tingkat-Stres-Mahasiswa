@@ -4,16 +4,42 @@ import numpy as np
 import joblib
 import os
 import plotly.express as px
+import hashlib
+from datetime import datetime
 
 # Konfigurasi Halaman Streamlit
 st.set_page_config(
-    page_title="Early Warning System Performa Mahasiswa",
+    page_title="Early Warning System Bimbingan Konseling Mahasiswa",
     page_icon="https://cdn-icons-png.flaticon.com/512/8716/8716565.png",
     layout="wide"
 )
 
 # -----------------------------------------------------------------------------
-# FITUR KEAMANAN: Inisialisasi State Autentikasi
+# FITUR KEAMANAN: Fungsi Enkripsi Password (SHA-256)
+# -----------------------------------------------------------------------------
+def hash_password(password):
+    """Mengenkripsi password menggunakan SHA-256 agar aman."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# Inisialisasi Database Pengguna Sederhana (File CSV atau State)
+USER_DB_FILE = 'users_db.csv'
+
+def load_users():
+    if os.path.exists(USER_DB_FILE):
+        return pd.read_csv(USER_DB_FILE)
+    else:
+        # Default awal jika file belum ada (Role: BK, Admin, Mahasiswa)
+        default_data = pd.DataFrame([
+            {"username": "bk", "password": hash_password("bk123"), "role": "Bimbingan Konseling", "nama_lengkap": "Tim BK Kampus"},
+            {"username": "admin", "password": hash_password("admin123"), "role": "Administrator", "nama_lengkap": "Admin Sistem"},
+            {"username": "an", "password": hash_password("mhs123"), "role": "Mahasiswa", "nama_lengkap": "An"},
+            {"username": "zahra", "password": hash_password("mhs123"), "role": "Mahasiswa", "nama_lengkap": "Zahra"}
+        ])
+        default_data.to_csv(USER_DB_FILE, index=False)
+        return default_data
+
+# -----------------------------------------------------------------------------
+# INISIALISASI SESSION STATE
 # -----------------------------------------------------------------------------
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -21,69 +47,105 @@ if 'user_role' not in st.session_state:
     st.session_state.user_role = None
 if 'username' not in st.session_state:
     st.session_state.username = None
+if 'nama_lengkap' not in st.session_state:
+    st.session_state.nama_lengkap = None
 
-# Kredensial pengguna sederhana
-USERS = {
-    "BK": {"password": "bk123", "role": "Konsultasi BK"},
-    "admin": {"password": "admin123", "role": "Administrator"},
-    "mahasiswa": {"password": "mhs123", "role": "Mahasiswa"}
-}
-
-def login_form():
-    st.markdown("<h2 style='text-align: center;'> Login Sistem Early Warning</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Silakan masuk menggunakan akun terdaftar untuk mengakses dashboard analitik.</p>", unsafe_allow_html=True)
+# -----------------------------------------------------------------------------
+# FORM LOGIN & REGISTRASI
+# -----------------------------------------------------------------------------
+def auth_system():
+    st.markdown("<h2 style='text-align: center;'> Sistem Keamanan Early Warning System</h2>", unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        with st.form("login_form"):
-            username_input = st.text_input("Username").strip().lower()
-            password_input = st.text_input("Password", type="password")
-            submit_button = st.form_submit_button("Masuk", type="primary", use_container_width=True)
-            
-            if submit_button:
-                if username_input in USERS and USERS[username_input]["password"] == password_input:
-                    st.session_state.logged_in = True
-                    st.session_state.username = username_input
-                    st.session_state.user_role = USERS[username_input]["role"]
-                    st.success("Login berhasil! Memuat sistem...")
-                    st.rerun()
-                else:
-                    st.error(" Username atau Password tidak valid!")
+    tab1, tab2 = st.tabs(["Masuk (Login)", "Daftar Akun Baru (Mahasiswa)"])
+    
+    df_users = load_users()
+    
+    with tab1:
+        st.markdown("<p style='text-align: center;'>Silakan masuk menggunakan akun terdaftar.</p>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            with st.form("login_form"):
+                username_input = st.text_input("Username").strip().lower()
+                password_input = st.text_input("Password", type="password")
+                submit_button = st.form_submit_button("Masuk", type="primary", use_container_width=True)
+                
+                if submit_button:
+                    hashed_pwd = hash_password(password_input)
+                    user_match = df_users[(df_users['username'] == username_input) & (df_users['password'] == hashed_pwd)]
+                    
+                    if not user_match.empty:
+                        st.session_state.logged_in = True
+                        st.session_state.username = username_input
+                        st.session_state.user_role = user_match.iloc[0]['role']
+                        st.session_state.nama_lengkap = user_match.iloc[0]['nama_lengkap']
+                        st.success("Login berhasil! Memuat sistem...")
+                        st.rerun()
+                    else:
+                        st.error(" Username atau Password salah!")
+
+    with tab2:
+        st.markdown("<p style='text-align: center;'>Pendaftaran khusus untuk akun Mahasiswa baru.</p>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            with st.form("register_form"):
+                reg_nama = st.text_input("Nama Lengkap (Contoh: An, Zahra)")
+                reg_username = st.text_input("Buat Username (huruf kecil)").strip().lower()
+                reg_password = st.text_input("Buat Password", type="password")
+                reg_submit = st.form_submit_button("Daftar Sekarang", use_container_width=True)
+                
+                if reg_submit:
+                    if not reg_nama or not reg_username or not reg_password:
+                        st.warning("Semua kolom wajib diisi!")
+                    elif reg_username in df_users['username'].values:
+                        st.error("Username sudah terdaftar, gunakan username lain.")
+                    else:
+                        new_user = pd.DataFrame([{
+                            "username": reg_username,
+                            "password": hash_password(reg_password),
+                            "role": "Mahasiswa",
+                            "nama_lengkap": reg_nama
+                        }])
+                        df_updated = pd.concat([df_users, new_user], ignore_index=True)
+                        df_updated.to_csv(USER_DB_FILE, index=False)
+                        st.success("Registrasi berhasil! Silakan pindah ke tab 'Masuk (Login)' untuk masuk.")
 
 def logout():
     st.session_state.logged_in = False
     st.session_state.user_role = None
     st.session_state.username = None
+    st.session_state.nama_lengkap = None
     st.rerun()
 
 # -----------------------------------------------------------------------------
-# JIKA BELUM LOGIN: Tampilkan Halaman Login
+# JIKA BELUM LOGIN
 # -----------------------------------------------------------------------------
 if not st.session_state.logged_in:
-    login_form()
+    auth_system()
 else:
     # -------------------------------------------------------------------------
     # JIKA SUDAH LOGIN: Tampilkan Dashboard Utama & Panel Keamanan
     # -------------------------------------------------------------------------
     
-    # Sidebar Informasi Pengguna & Tombol Logout
-    st.sidebar.markdown(f" **Pengguna:** `{st.session_state.username.upper()}`")
+    # Sidebar Informasi Pengguna Dinamis (Nama Asli: An / Zahra / dll)
+    st.sidebar.markdown(f" **Pengguna:** `{st.session_state.nama_lengkap}`")
     st.sidebar.markdown(f" **Peran:** `{st.session_state.user_role}`")
     
-    if st.sidebar.button(" Logout / Keluar", type="secondary"):
+    if st.sidebar.button("Logout / Keluar", type="secondary"):
         logout()
         
     st.sidebar.markdown("---")
 
-    st.title(" Early Warning System: Prediksi Performa & Risiko Akademik Mahasiswa")
-    st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi tingkat stress mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
+    st.title("Early Warning System: Prediksi Performa & Risiko Akademik Mahasiswa")
+    st.markdown("Purwarupa sistem berbasis *Machine Learning* untuk mendeteksi potensi tingkat stres mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
 
     # -------------------------------------------------------------------------
-    # PENGATURAN MENU UTAMA BERDASARKAN PERAN (RBAC)
+    # PENGATURAN MENU UTAMA BERDASARKAN PERAN (RBAC - Role Based Access Control)
     # -------------------------------------------------------------------------
     if st.session_state.user_role == "Mahasiswa":
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data"])
-    else:
+    elif st.session_state.user_role == "Bimbingan Konseling":
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
+    else: # Administrator
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
     # Fungsi untuk memuat model machine learning (.pkl)
@@ -99,7 +161,7 @@ else:
     if menu == "Beranda":
         st.subheader("Selamat Datang di Dashboard Pemantauan Akademik")
         st.write("""
-        Sistem Peringatan Dini (*Early Warning System*) ini dirancang untuk membantu dosen pembimbing dan institusi 
+        Sistem Peringatan Dini (*Early Warning System*) ini dirancang untuk membantu tim Bimbingan Konseling (BK) dan institusi 
         dalam melakukan identifikasi dini terhadap mahasiswa yang rentan mengalami penurunan performa akademik 
         atau keterlambatan studi secara proaktif.
         """)
@@ -108,22 +170,22 @@ else:
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown("###  Algoritma Utama")
+            st.markdown("### Algoritma Utama")
             st.info("**Random Forest & XGBoost**\n\nModel *Machine Learning* untuk klasifikasi tingkat risiko.")
             
         with col2:
-            st.markdown("###  Variabel Analisis")
+            st.markdown("### Variabel Analisis")
             st.info("**7 Fitur Gaya Hidup**\n\nJam belajar, tidur, aktivitas fisik, sosialisasi, ekstrakurikuler, GPA, & tingkat stres.")
             
         with col3:
-            st.markdown("###  Target Sistem")
+            st.markdown("### Target Sistem")
             st.info("**Mitigasi Risiko Akademik**\n\nDeteksi dini potensi keterlambatan studi & penurunan performa mahasiswa.")
         
         st.markdown("---")
 
     elif menu == "Prediksi Mandiri Mahasiswa":
         st.subheader("Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
-        st.write("Silakan masukkan parameter gaya hidup Anda di bawah ini:")
+        st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan masukkan parameter gaya hidup Anda di bawah ini:")
 
         if model is None:
             st.warning(" File model machine learning (`model_rf.pkl`) belum ditemukan di direktori Anda.")
@@ -180,10 +242,11 @@ else:
                     is_risky = (prediction[0] == 1 or prediction[0] > 0)
                     status_str = "Berisiko Tinggi" if is_risky else "Aman"
 
-                    # SIMPAN HASIL KE CSV (SUPAYA DOSEN BISA MEMANTAU)
+                    # SIMPAN HASIL KE CSV DENGAN TIMESTAMP REAL-TIME LOKAL
                     result_record = {
+                        'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
-                        'Timestamp': pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), # Real-time timestamp
                         'GPA': gpa,
                         'Study_Hours': study_hour,
                         'Stress_Level': stress_level,
@@ -201,7 +264,7 @@ else:
                     
                     if is_risky:
                         st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
-                        st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling diruang BK, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
+                        st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling di ruang BK, mengevaluasi manajemen waktu belajar, serta mengelola tingkat stres.")
                     else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
@@ -219,7 +282,7 @@ else:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
 
     elif menu == "Monitoring Mahasiswa Berisiko":
-        st.subheader(" Dashboard Monitoring Dosen: Daftar Mahasiswa Berisiko")
+        st.subheader(" Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
         st.write("Berikut adalah rekapitulasi data mahasiswa yang telah mengisi *Formulir Evaluasi Gaya Hidup & Prediksi Risiko*:")
 
         csv_file = 'student_predictions.csv'
@@ -236,12 +299,23 @@ else:
                 df_filtered = df_submissions
 
             st.dataframe(df_filtered, use_container_width=True)
-            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Dosen dapat memprioritaskan bimbingan bagi mahasiswa yang berstatus **Berisiko Tinggi**.")
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memprioritaskan bimbingan bagi mahasiswa yang berstatus **Berisiko Tinggi**.")
+
+            # FITUR HAPUS DATA (Diberikan untuk Admin / BK)
+            st.markdown("---")
+            st.write("🗑️ **Manajemen Hapus Data Rekaman:**")
+            index_to_delete = st.number_input("Pilih indeks baris data yang ingin dihapus (lihat tabel di atas)", min_value=0, max_value=max(0, len(df_submissions)-1), step=1)
+            if st.button("Hapus Baris Data Terpilih", type="secondary"):
+                if not df_submissions.empty:
+                    df_submissions = df_submissions.drop(index_to_delete).reset_index(drop=True)
+                    df_submissions.to_csv(csv_file, index=False)
+                    st.success(f"Data pada indeks ke-{index_to_delete} berhasil dihapus!")
+                    st.rerun()
         else:
             st.info("Belum ada data pengisian formulir dari mahasiswa. Data akan muncul di sini setelah mahasiswa melakukan prediksi mandiri.")
 
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader(" Visualisasi Statistik & Eksplorasi Fitur Dataset")
+        st.subheader("📊 Visualisasi Statistik & Eksplorasi Fitur Dataset")
         st.write("Bagian ini menampilkan grafik interaktif beranimasi untuk perbandingan parameter gaya hidup terhadap performa akademik mahasiswa.")
         
         chart_data = pd.DataFrame({
@@ -283,7 +357,7 @@ else:
         st.info(" Grafik di atas divisualisasikan secara dinamis untuk memberikan gambaran komparatif mengenai pola kebiasaan mahasiswa terhadap hasil akademik mereka.")
 
     elif menu == "Tentang Dataset & Fitur":
-        st.subheader("Informasi Variabel Dataset *Student Lifestyle*")
+        st.subheader(" Informasi Variabel Dataset *Student Lifestyle*")
         st.write("Sistem ini dilatih menggunakan 7 fitur utama yang merepresentasikan kebiasaan sehari-hari mahasiswa:")
         
         features_info = pd.DataFrame({
