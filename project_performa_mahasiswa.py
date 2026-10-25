@@ -303,7 +303,7 @@ else:
 
             # FITUR HAPUS DATA (Diberikan untuk Admin / BK)
             st.markdown("---")
-            st.write("🗑️ **Manajemen Hapus Data Rekaman:**")
+            st.write(" **Manajemen Hapus Data Rekaman:**")
             index_to_delete = st.number_input("Pilih indeks baris data yang ingin dihapus (lihat tabel di atas)", min_value=0, max_value=max(0, len(df_submissions)-1), step=1)
             if st.button("Hapus Baris Data Terpilih", type="secondary"):
                 if not df_submissions.empty:
@@ -315,7 +315,7 @@ else:
             st.info("Belum ada data pengisian formulir dari mahasiswa. Data akan muncul di sini setelah mahasiswa melakukan prediksi mandiri.")
 
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader("📊 Visualisasi Statistik & Eksplorasi Fitur Dataset")
+        st.subheader(" Visualisasi Statistik & Eksplorasi Fitur Dataset")
         st.write("Bagian ini menampilkan grafik interaktif beranimasi untuk perbandingan parameter gaya hidup terhadap performa akademik mahasiswa.")
         
         chart_data = pd.DataFrame({
