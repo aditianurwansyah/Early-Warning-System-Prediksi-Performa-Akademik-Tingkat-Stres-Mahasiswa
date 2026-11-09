@@ -200,16 +200,17 @@ else:
                 
             with col2:
                 physical_activity = st.number_input("Jam Aktivitas Fisik per Hari", min_value=0.0, max_value=24.0, value=1.0, step=0.5)
-                gpa = st.selectbox("Indeks Prestasi Kumulatif / GPA Terakhir",
-                                   options=[
-                                       (1, "1 - Rendah"),
-                                       (2, "2 - Sedang"),
-                                       (3, "3 - Tinggi")
-                                   ], 
-                                   format_func=lambda x: x[1],
-                                   index=2
-                                  ) 
-                                  GPA = gpa_option[0]
+                gpa_sel = st.selectbox(
+                    "Indeks Prestasi Kumulatif / GPA",
+                    options=[
+                        (1, "1 - Rendah"),
+                        (2, "2 - Sedang"),
+                        (3, "3 - Tinggi")
+                    ],
+                    format_func=lambda x: x[1],
+                    index=2
+                )
+                GPA = gpa_sel[0]
                 
                 stress_option = st.selectbox(
                     "Tingkat Stres",
