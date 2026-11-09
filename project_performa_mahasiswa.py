@@ -233,7 +233,7 @@ else:
                     sleep_hour, 
                     social_hour, 
                     physical_activity, 
-                    gpa, 
+                    GPA, 
                     stress_level
                 ]], columns=[
                     'Study_Hours_Per_Day', 
@@ -257,7 +257,7 @@ else:
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
                         'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), # Real-time timestamp
-                        'GPA': gpa,
+                        'GPA': GPA,
                         'Study_Hours': study_hour,
                         'Stress_Level': stress_level,
                         'Prediction': status_str
