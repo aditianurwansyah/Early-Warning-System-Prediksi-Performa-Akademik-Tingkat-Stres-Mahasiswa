@@ -183,7 +183,7 @@ else:
         
         st.markdown("---")
 
-        elif menu == "Prediksi Mandiri Mahasiswa":
+    elif menu == "Prediksi Mandiri Mahasiswa":
         st.subheader("Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
         st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan masukkan parameter gaya hidup dan keluhan Anda di bawah ini:")
 
