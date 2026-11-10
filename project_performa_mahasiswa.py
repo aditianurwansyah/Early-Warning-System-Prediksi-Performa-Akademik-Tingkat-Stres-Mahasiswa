@@ -183,9 +183,9 @@ else:
         
         st.markdown("---")
 
-    elif menu == "Prediksi Mandiri Mahasiswa":
+        elif menu == "Prediksi Mandiri Mahasiswa":
         st.subheader("Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
-        st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan masukkan parameter gaya hidup Anda di bawah ini:")
+        st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan masukkan parameter gaya hidup dan keluhan Anda di bawah ini:")
 
         if model is None:
             st.warning(" File model machine learning (`model_rf.pkl`) belum ditemukan di direktori Anda.")
@@ -200,14 +200,13 @@ else:
                 
             with col2:
                 physical_activity = st.number_input("Jam Aktivitas Fisik per Hari", min_value=0.0, max_value=24.0, value=1.0, step=0.5)
+                
                 gpa_sel = st.selectbox(
                     "Indeks Prestasi Kumulatif / GPA",
                     options=[
-                        (1, "1 - Sangat Rendah (< 2.50)"),
-                        (2, "2 - Rendah (2.50-2.75)"),
-                        (3, "3 - Sedang (2.76-3.00)"),
-                        (4, "4 - Tinggi (3.01-3.50)"),
-                        (5, "5 - Sangat Tinggi (3.51-4.00)")
+                        (1, "1 - Rendah"),
+                        (2, "2 - Sedang"),
+                        (3, "3 - Tinggi")
                     ],
                     format_func=lambda x: x[1],
                     index=2
@@ -227,6 +226,14 @@ else:
                     index=2
                 )
                 stress_level = stress_option[0]
+
+            st.markdown("---")
+            st.write("##### **Informasi Tambahan untuk Bimbingan Konseling (BK)**")
+            col_fb1, col_fb2 = st.columns(2)
+            with col_fb1:
+                kategori_masalah = st.selectbox("Kategori Masalah Utama", ["Akademik", "Non Akademik"])
+            with col_fb2:
+                feedback_mhs = st.text_area("Feedback / Pesan / Keluhan untuk Tim BK (Opsional)", placeholder="Tuliskan keluhan atau hal yang ingin dikonsultasikan...")
 
             if st.button("Jalankan Analisis & Prediksi Risiko", type="primary"):
                 input_data = pd.DataFrame([[
@@ -251,17 +258,39 @@ else:
                     prediction = model.predict(input_data.values)
                     prediction_proba = model.predict_proba(input_data.values)
                     
-                    is_risky = (prediction[0] == 1 or prediction[0] > 0)
-                    status_str = "Berisiko Tinggi" if is_risky else "Aman"
+                    pred_class = int(prediction[0])
+                    # Mapping kelas (0: Aman, 1: Risiko Sedang, 2: Berisiko Tinggi)
+                    class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
+                    status_str = class_map.get(pred_class, "Aman")
 
-                    # SIMPAN HASIL KE CSV DENGAN TIMESTAMP REAL-TIME LOKAL
+                    # ANALISIS FAKTOR PEMICU OTOMATIS (Trigger Explanation)
+                    triggers = []
+                    if sleep_hour < 6.0:
+                        triggers.append(f" **Durasi Tidur Kurang:** Hanya {sleep_hour} jam/hari (di bawah standar sehat 7-8 jam).")
+                    if study_hour < 2.0:
+                        triggers.append(f" **Jam Belajar Rendah:** Hanya {study_hour} jam/hari, berisiko menurunkan pemahaman materi.")
+                    elif study_hour > 10.0:
+                        triggers.append(f" **Beban Belajar Berlebih (Overload):** {study_hour} jam/hari berisiko memicu kelelahan mental (*burnout*).")
+                    if stress_level >= 4:
+                        triggers.append(f" **Tingkat Stres Tinggi:** Skor stres berada di angka {stress_level}/5.")
+                    if GPA == 1:
+                        triggers.append(" **Indeks Prestasi (GPA):** Berada pada kategori Rendah.")
+                    if social_hour > 6.0:
+                        triggers.append(f" **Waktu Sosialisasi Tinggi:** {social_hour} jam/hari berpotensi menyita waktu produktif.")
+                    
+                    if not triggers:
+                        triggers.append("Seluruh parameter gaya hidup berada dalam rentang yang seimbang dan sehat.")
+
+                    # SIMPAN HASIL KE CSV
                     result_record = {
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
-                        'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"), # Real-time timestamp
+                        'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         'GPA': GPA,
                         'Study_Hours': study_hour,
                         'Stress_Level': stress_level,
+                        'Kategori_Masalah': kategori_masalah,
+                        'Feedback': feedback_mhs if feedback_mhs else "-",
                         'Prediction': status_str
                     }
                     csv_file = 'student_predictions.csv'
@@ -272,14 +301,69 @@ else:
                         df_record.to_csv(csv_file, mode='a', header=False, index=False)
 
                     st.markdown("---")
-                    st.subheader("Hasil Analisis Sistem:")
+                    st.subheader("Hasil Analisis Sistem & Rekomendasi:")
                     
-                    if is_risky:
-                        st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Penurunan Performa)**")
-                        st.warning("**Rekomendasi Tindakan:** Mahasiswa disarankan segera melakukan konseling di ruang BK.")
+                    if status_str == "Berisiko Tinggi":
+                        st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Krisis Akademik)**")
+                        st.warning("**Rekomendasi Tindakan:** Mahasiswa **wajib** segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif dan pencegahan penurunan performa yang lebih parah.")
+                    elif status_str == "Risiko Sedang":
+                        st.warning("**Status: RISIKO SEDANG (Perlu Perhatian & Penyesuaian Gaya Hidup)**")
+                        st.info("**Rekomendasi Tindakan:** Mahasiswa disarankan melakukan konsultasi preventif ke BK untuk evaluasi manajemen waktu, pengaturan jam tidur, serta strategi mengatasi stres sebelum meningkat ke tahap krisis.")
                     else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
-                        st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
+                        st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, jaga konsistensi belajar, dan pertahankan waktu istirahat yang cukup.")
+                    
+                    # TAMPILKAN ANALISIS PEMICU
+                    st.write("---")
+                    st.write("**Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
+                    for trig in triggers:
+                        st.markdown(f"- {trig}")
+
+                    # Visualisasi Confidence Score (Plotly dengan Urutan & Warna Kustom)
+                    st.write("---")
+                    st.write(" **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                    
+                    prob_values = prediction_proba[0]
+                    
+                    # Menyesuaikan jumlah probabilitas model
+                    if len(prob_values) >= 3:
+                        chart_df = pd.DataFrame({
+                            'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
+                            'Probabilitas': [prob_values[0], prob_values[1], prob_values[2]],
+                            'Warna': ["#2ecc71", "#f39c12", "#e74c3c"]  # Hijau, Oranye, Merah
+                        })
+                    else:
+                        chart_df = pd.DataFrame({
+                            'Kategori Risiko': ["Aman", "Berisiko Tinggi"],
+                            'Probabilitas': [prob_values[0], prob_values[1]],
+                            'Warna': ["#2ecc71", "#e74c3c"]
+                        })
+                    
+                    fig_conf = px.bar(
+                        chart_df,
+                        x='Kategori Risiko',
+                        y='Probabilitas',
+                        text='Probabilitas',
+                        template='plotly_dark',
+                        category_orders={'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"]}
+                    )
+                    
+                    fig_conf.update_traces(
+                        marker_color=chart_df['Warna'],
+                        texttemplate='%{text:.2f}', 
+                        textposition='outside'
+                    )
+                    
+                    fig_conf.update_layout(
+                        showlegend=False, 
+                        yaxis=dict(range=[0, 1.1]), 
+                        margin=dict(t=30, b=20, l=20, r=20)
+                    )
+                    
+                    st.plotly_chart(fig_conf, use_container_width=True)
+                    
+                except Exception as e:
+                    st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
                     
                    # Visualisasi Confidence Score dengan Warna Pasti (Aman=Hijau, Sedang=Oranye, Tinggi=Merah)
                     st.write("---")
