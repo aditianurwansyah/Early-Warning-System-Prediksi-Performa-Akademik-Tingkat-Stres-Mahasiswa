@@ -428,14 +428,13 @@ else:
                 except Exception as e:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
 
-    elif menu == "Monitoring Mahasiswa Berisiko":
-        st.subheader(" Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
+   elif menu == "Monitoring Mahasiswa Berisiko":
+        st.subheader("Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
         st.write("Berikut adalah rekapitulasi data mahasiswa beserta keterangan rekomendasi tindakan dan keluhan mereka:")
 
         csv_file = 'student_predictions.csv'
         df_submissions = pd.DataFrame()
         
-        # Daftar kolom lengkap termasuk 'Keterangan'
         default_columns = [
             'Nama_Mahasiswa', 'Username', 'Timestamp', 'Department', 'Study_Hours', 
             'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
@@ -446,7 +445,6 @@ else:
         if os.path.exists(csv_file):
             try:
                 df_submissions = pd.read_csv(csv_file)
-                # Jika file CSV lama belum memiliki kolom Keterangan, tambahkan secara otomatis
                 if 'Keterangan' not in df_submissions.columns:
                     df_submissions['Keterangan'] = 'Evaluasi rutin'
             except Exception:
@@ -473,11 +471,41 @@ else:
             if 'Stress_Level' in df_filtered.columns:
                 df_filtered['Stress_Level'] = df_filtered['Stress_Level'].map(stress_mapping).fillna(df_filtered['Stress_Level'])
 
-            # Menampilkan tabel lengkap dengan kolom Keterangan
-            st.dataframe(df_filtered, use_container_width=True)
-            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat melihat rekomendasi tindakan langsung pada kolom **Keterangan**.")
+            # =========================================================================
+            # 1. MENAMPILKAN TABEL YANG LEBIH RAPI (Lebar kolom menyesuaikan / interaktif)
+            # =========================================================================
+            st.dataframe(
+                df_filtered, 
+                use_container_width=True,
+                column_config={
+                    "Keterangan": st.column_config.TextColumn("Keterangan Tindakan", width="large"),
+                    "Feedback": st.column_config.TextColumn("Feedback Mahasiswa", width="medium"),
+                    "Nama_Mahasiswa": st.column_config.TextColumn("Nama", width="medium"),
+                }
+            )
+            
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter status risiko dan mengunduh laporan rekapitulasi di bawah.")
 
-            # FITUR HAPUS MULTI-DATA
+            # =========================================================================
+            # 2. FITUR TOMBOL UNDUH LAPORAN (DOWNLOAD CSV YANG RAPI)
+            # =========================================================================
+            st.markdown("---")
+            st.subheader("Unduh Laporan Rekapitulasi Data")
+            
+            # Konversi dataframe yang telah difilter agar siap diunduh
+            csv_export = df_filtered.to_csv(index=False).encode('utf-8')
+            
+            st.download_button(
+                label="Unduh Data Tabel (Format CSV)",
+                data=csv_export,
+                file_name=f"Laporan_Monitoring_BK_{datetime.now().strftime('%Y-%m-%d')}.csv",
+                mime="text/csv",
+                help="Klik untuk mengunduh rekapitulasi data mahasiswa untuk laporan sidang atau arsip BK."
+            )
+
+            # =========================================================================
+            # 3. MANAJEMEN HAPUS MULTI-DATA
+            # =========================================================================
             st.markdown("---")
             st.subheader("Manajemen Hapus Data Rekaman")
             
