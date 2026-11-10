@@ -201,17 +201,20 @@ else:
             with col2:
                 physical_activity = st.number_input("Jam Aktivitas Fisik per Hari", min_value=0.0, max_value=24.0, value=1.0, step=0.5)
                 
-                gpa_sel = st.selectbox(
-                    "Indeks Prestasi Kumulatif / GPA",
+                gpa_option = st.selectbox(
+                    "Rentang Indeks Prestasi Kumulatif / GPA",
                     options=[
-                        (1, "1 - Rendah"),
-                        (2, "2 - Sedang"),
-                        (3, "3 - Tinggi")
+                        (2.00, "2.00 - 2.25 (Cukup)"),
+                        (2.26, "2.26 - 2.50 (Cukup Baik)"),
+                        (2.51, "2.51 - 2.75 (Baik)"),
+                        (2.76, "2.76 - 3.00 (Sangat Baik)"),
+                        (3.01, "3.01 - 3.50 (Memuaskan)"),
+                        (3.51, "3.51 - 4.00 (Dengan Pujian / Cum Laude)")
                     ],
                     format_func=lambda x: x[1],
-                    index=2
+                    index=3
                 )
-                GPA = gpa_sel[0]
+                GPA = gpa_option[0]
                 
                 stress_option = st.selectbox(
                     "Tingkat Stres",
@@ -229,11 +232,18 @@ else:
 
             st.markdown("---")
             st.write("##### **Informasi Tambahan untuk Bimbingan Konseling (BK)**")
-            col_fb1, col_fb2 = st.columns(2)
+            
+            col_fb1, col_fb2, col_fb3 = st.columns(3)
             with col_fb1:
-                kategori_masalah = st.selectbox("Kategori Masalah Utama", ["Akademik", "Non Akademik"])
+                # Tambahan input Departemen / Program Studi
+                departemen = st.selectbox(
+                    "Departemen / Program Studi", 
+                    ["Teknik Informatika", "Sistem Informasi", "Teknik Industri", "Manajemen", "Akuntansi", "Ilmu Komunikasi", "Lainnya"]
+                )
             with col_fb2:
-                feedback_mhs = st.text_area("Feedback / Pesan / Keluhan untuk Tim BK (Opsional)", placeholder="Tuliskan keluhan atau hal yang ingin dikonsultasikan...")
+                kategori_masalah = st.selectbox("Kategori Masalah Utama", ["Akademik", "Non Akademik"])
+            with col_fb3:
+                feedback_mhs = st.text_area("Feedback / Pesan untuk Tim BK (Opsional)", placeholder="Tuliskan keluhan atau hal yang ingin dikonsultasikan...")
 
             if st.button("Jalankan Analisis & Prediksi Risiko", type="primary"):
                 input_data = pd.DataFrame([[
@@ -259,35 +269,23 @@ else:
                     prediction_proba = model.predict_proba(input_data.values)
                     
                     pred_class = int(prediction[0])
-                    # Mapping kelas (0: Aman, 1: Risiko Sedang, 2: Berisiko Tinggi)
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                    # ANALISIS FAKTOR PEMICU OTOMATIS (Trigger Explanation)
-                    triggers = []
-                    if sleep_hour < 6.0:
-                        triggers.append(f" **Durasi Tidur Kurang:** Hanya {sleep_hour} jam/hari (di bawah standar sehat 7-8 jam).")
-                    if study_hour < 2.0:
-                        triggers.append(f" **Jam Belajar Rendah:** Hanya {study_hour} jam/hari, berisiko menurunkan pemahaman materi.")
-                    elif study_hour > 10.0:
-                        triggers.append(f" **Beban Belajar Berlebih (Overload):** {study_hour} jam/hari berisiko memicu kelelahan mental (*burnout*).")
-                    if stress_level >= 4:
-                        triggers.append(f" **Tingkat Stres Tinggi:** Skor stres berada di angka {stress_level}/5.")
-                    if GPA == 1:
-                        triggers.append(" **Indeks Prestasi (GPA):** Berada pada kategori Rendah.")
-                    if social_hour > 6.0:
-                        triggers.append(f" **Waktu Sosialisasi Tinggi:** {social_hour} jam/hari berpotensi menyita waktu produktif.")
-                    
-                    if not triggers:
-                        triggers.append("Seluruh parameter gaya hidup berada dalam rentang yang seimbang dan sehat.")
+                  
 
-                    # SIMPAN HASIL KE CSV
+                    # SIMPAN HASIL KE CSV (Sertakan kolom 'Department')
                     result_record = {
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
                         'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        'GPA': GPA,
+                        'Department': departemen,
                         'Study_Hours': study_hour,
+                        'Extracurricular_Hours': extracurricular,
+                        'Sleep_Hours': sleep_hour,
+                        'Social_Hours': social_hour,
+                        'Physical_Activity': physical_activity,
+                        'GPA': GPA,
                         'Stress_Level': stress_level,
                         'Kategori_Masalah': kategori_masalah,
                         'Feedback': feedback_mhs if feedback_mhs else "-",
@@ -407,31 +405,30 @@ else:
 
     elif menu == "Monitoring Mahasiswa Berisiko":
         st.subheader(" Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
-        st.write("Berikut adalah rekapitulasi data mahasiswa yang telah mengisi *Formulir Evaluasi Gaya Hidup & Prediksi Risiko* beserta rincian parameter dan keluhan mereka:")
+        st.write("Berikut adalah rekapitulasi data mahasiswa yang telah mengisi *Formulir Evaluasi Gaya Hidup & Prediksi Risiko* beserta rincian departemen dan keluhan mereka:")
 
         csv_file = 'student_predictions.csv'
         df_submissions = pd.DataFrame()
         
-        # Penanganan aman jika file CSV belum ada atau format kolomnya tidak sinkron (mencegah ParserError)
+        # Kolom standar yang harus ada
+        default_columns = [
+            'Nama_Mahasiswa', 'Username', 'Timestamp', 'Department', 'Study_Hours', 
+            'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
+            'Physical_Activity', 'GPA', 'Stress_Level', 
+            'Kategori_Masalah', 'Feedback', 'Prediction'
+        ]
+
         if os.path.exists(csv_file):
             try:
                 df_submissions = pd.read_csv(csv_file)
+                # Jika file CSV lama belum ada kolom 'Department', tambahkan secara otomatis agar tidak error
+                if 'Department' not in df_submissions.columns:
+                    df_submissions['Department'] = 'Umum / Belum Tercatat'
             except Exception:
-                # Jika file CSV korup/format lama, hapus dan buat ulang secara bersih
                 os.remove(csv_file)
-                df_submissions = pd.DataFrame(columns=[
-                    'Nama_Mahasiswa', 'Username', 'Timestamp', 'Study_Hours', 
-                    'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
-                    'Physical_Activity', 'GPA', 'Stress_Level', 
-                    'Kategori_Masalah', 'Feedback', 'Prediction'
-                ])
+                df_submissions = pd.DataFrame(columns=default_columns)
         else:
-            df_submissions = pd.DataFrame(columns=[
-                'Nama_Mahasiswa', 'Username', 'Timestamp', 'Study_Hours', 
-                'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
-                'Physical_Activity', 'GPA', 'Stress_Level', 
-                'Kategori_Masalah', 'Feedback', 'Prediction'
-            ])
+            df_submissions = pd.DataFrame(columns=default_columns)
 
         if not df_submissions.empty:
             # Filter berdasarkan status risiko
@@ -441,9 +438,9 @@ else:
             else:
                 df_filtered = df_submissions
 
-            # Menampilkan tabel dengan seluruh kolom lengkap (Jam belajar, tidur, eskul, sosialisasi, aktivitas, GPA, stres, feedback, dll)
+            # Menampilkan tabel interaktif lengkap dengan kolom Departemen
             st.dataframe(df_filtered, use_container_width=True)
-            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memprioritaskan bimbingan bagi mahasiswa berstatus **Berisiko Tinggi** dan membaca **Feedback** keluhan mereka.")
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter berdasarkan departemen dan memprioritaskan bimbingan bagi mahasiswa berstatus **Berisiko Tinggi**.")
 
             # FITUR HAPUS MULTI-DATA
             st.markdown("---")
@@ -452,9 +449,10 @@ else:
             row_labels = []
             for i, row in df_submissions.iterrows():
                 nama = row.get('Nama_Mahasiswa', 'Tanpa Nama')
+                dept = row.get('Department', '-')
                 waktu = row.get('Timestamp', '-')
                 status = row.get('Prediction', '-')
-                row_labels.append(f"Baris {i} | Nama: {nama} | Waktu: {waktu} | Status: {status}")
+                row_labels.append(f"Baris {i} | Nama: {nama} ({dept}) | Waktu: {waktu} | Status: {status}")
             
             df_submissions['Row_ID'] = row_labels
             
@@ -485,17 +483,12 @@ else:
             
             with col_action2:
                 if st.button("Hapus / Bersihkan Semua Data", type="secondary"):
-                    empty_df = pd.DataFrame(columns=[
-                        'Nama_Mahasiswa', 'Username', 'Timestamp', 'Study_Hours', 
-                        'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
-                        'Physical_Activity', 'GPA', 'Stress_Level', 
-                        'Kategori_Masalah', 'Feedback', 'Prediction'
-                    ])
+                    empty_df = pd.DataFrame(columns=default_columns)
                     empty_df.to_csv(csv_file, index=False)
                     st.success("Semua riwayat data berhasil dibersihkan!")
                     st.rerun()
         else:
-            st.info("Belum ada data pengisian formulir dari mahasiswa. Data akan muncul di sini setelah mahasiswa melakukan prediksi mandiri.") 
+            st.info("Belum ada data pengisian formulir dari mahasiswa.")
             
     elif menu == "Visualisasi & Analisis Data":
         st.subheader(" Visualisasi Statistik & Eksplorasi Fitur Dataset")
