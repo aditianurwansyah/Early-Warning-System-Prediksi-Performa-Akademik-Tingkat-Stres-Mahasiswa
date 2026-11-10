@@ -281,12 +281,21 @@ else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                     
-                    # Visualisasi Confidence Score
+                   # Visualisasi Confidence Score 
                     st.write("---")
-                    st.write(" **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                    st.write("**Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                    
                     num_classes = prediction_proba.shape[1]
-                    col_names = [f"Kelas {i}" for i in range(num_classes)]
-                    chart_data = pd.DataFrame(prediction_proba, columns=col_names).T
+                    
+                    # Menyesuaikan label berdasarkan jumlah kelas pada model Anda
+                    if num_classes == 3:
+                        class_labels = ["Aman", "Risiko Sedang", "Berisiko Tinggi"]
+                    elif num_classes == 2:
+                        class_labels = ["Aman", "Berisiko Tinggi"]
+                    else:
+                        class_labels = [f"Kelas {i}" for i in range(num_classes)]
+                    
+                    chart_data = pd.DataFrame(prediction_proba, columns=class_labels).T
                     chart_data.columns = ["Probabilitas"]
                     st.bar_chart(chart_data)
                     
