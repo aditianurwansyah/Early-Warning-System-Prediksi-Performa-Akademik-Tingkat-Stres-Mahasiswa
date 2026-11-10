@@ -453,14 +453,29 @@ else:
             # Filter berdasarkan status risiko
             risk_filter = st.selectbox("Filter Berdasarkan Status Risiko:", ["Semua Data", "Berisiko Tinggi", "Risiko Sedang", "Aman"])
             if risk_filter != "Semua Data" and 'Prediction' in df_submissions.columns:
-                df_filtered = df_submissions[df_submissions['Prediction'] == risk_filter]
+                df_filtered = df_submissions[df_submissions['Prediction'] == risk_filter].copy()
             else:
-                df_filtered = df_submissions
+                df_filtered = df_submissions.copy()
 
-            # Menampilkan tabel interaktif lengkap dengan kolom Departemen
+            # ==========================================
+            # PEMETAAN ANGKA STRESS LEVEL MENJADI TEKS DESKRIPTIF
+            # ==========================================
+            stress_mapping = {
+                1: "1 - Sangat Rendah",
+                2: "2 - Rendah",
+                3: "3 - Sedang",
+                4: "4 - Tinggi",
+                5: "5 - Sangat Tinggi"
+            }
+            if 'Stress_Level' in df_filtered.columns:
+                # Mengubah angka menjadi teks berdasarkan kamus stress_mapping
+                df_filtered['Stress_Level'] = df_filtered['Stress_Level'].map(stress_mapping).fillna(df_filtered['Stress_Level'])
+            # ==========================================
+
+            # Menampilkan tabel interaktif yang sudah diperjelas
             st.dataframe(df_filtered, use_container_width=True)
             st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter berdasarkan departemen dan memprioritaskan bimbingan bagi mahasiswa berstatus **Berisiko Tinggi**.")
-
+            
             # FITUR HAPUS MULTI-DATA
             st.markdown("---")
             st.subheader("Manajemen Hapus Data Rekaman")
