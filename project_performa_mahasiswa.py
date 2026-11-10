@@ -343,7 +343,7 @@ else:
 
             # FITUR HAPUS MULTI-DATA (Pilih Banyak Sekaligus)
             st.markdown("---")
-            st.subheader("🗑️ Manajemen Hapus Data Rekaman")
+            st.subheader("Manajemen Hapus Data Rekaman")
             
             if not df_submissions.empty:
                 # Membuat label identifikasi unik untuk setiap baris data
