@@ -332,7 +332,7 @@ else:
                     
                     # TAMPILKAN ANALISIS PEMICU
                     st.write("---")
-                    st.write("🔍 **Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
+                    st.write("**Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
                     for trig in triggers:
                         st.markdown(f"- {trig}")
 
