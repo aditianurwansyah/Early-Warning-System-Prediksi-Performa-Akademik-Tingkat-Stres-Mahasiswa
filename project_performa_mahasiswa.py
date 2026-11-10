@@ -49,7 +49,7 @@ def load_user_db():
         df_default.to_csv(USER_DB, index=False)
         return df_default
 
-# Fungsi Pemetaan Kategori GPA untuk Tampilan Tabel & PDF
+# Fungsi Pemetaan Kategori GPA
 def map_gpa_category(val):
     if pd.isna(val):
         return "-"
@@ -69,7 +69,7 @@ def map_gpa_category(val):
         return str(val)
 
 # ==========================================
-# 2. FUNGSI GENERATE LAPORAN PDF RESMI
+# 2. FUNGSI GENERATE LAPORAN PDF RESMI (KOLOM LEBIH LEBAR & JELAS)
 # ==========================================
 def generate_pdf_report(df):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
@@ -82,15 +82,15 @@ def generate_pdf_report(df):
     pdf.cell(0, 5, f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')} WIB | Early Warning System Mahasiswa", ln=True, align='C')
     pdf.ln(4)
     
-    # Header Tabel (Total Lebar = 275 mm untuk A4 Landscape)
+    # Header Tabel (Total Lebar = 277 mm untuk A4 Landscape)
     pdf.set_font("Helvetica", 'B', 7)
     pdf.set_fill_color(230, 230, 230)
     
     col_widths = {
-        'Nama': 24, 'User': 16, 'Waktu': 26, 'Dept': 22, 
-        'Study': 11, 'Eskul': 11, 'Tidur': 11, 'Sosial': 11, 'Fisik': 11, 
-        'GPA': 28, 'Stres': 18, 'Masalah': 16, 'Feedback': 28, 
-        'Status': 22, 'Keterangan': 20
+        'Nama': 22, 'User': 12, 'Waktu': 25, 'Dept': 20, 
+        'Study': 7, 'Eskul': 7, 'Tidur': 7, 'Sosial': 7, 'Fisik': 7, 
+        'GPA': 28, 'Stres': 15, 'Masalah': 13, 'Feedback': 30, 
+        'Status': 20, 'Keterangan': 60
     }
     
     pdf.cell(col_widths['Nama'], 6, "Nama Mahasiswa", border=1, fill=True)
@@ -107,7 +107,7 @@ def generate_pdf_report(df):
     pdf.cell(col_widths['Masalah'], 6, "Kategori", border=1, fill=True)
     pdf.cell(col_widths['Feedback'], 6, "Feedback Mhs", border=1, fill=True)
     pdf.cell(col_widths['Status'], 6, "Status Risiko", border=1, fill=True)
-    pdf.cell(col_widths['Keterangan'], 6, "Rekomendasi", border=1, fill=True, ln=True)
+    pdf.cell(col_widths['Keterangan'], 6, "Rekomendasi Tindakan BK", border=1, fill=True, ln=True)
     
     # Isi Baris Tabel
     pdf.set_font("Helvetica", '', 6)
@@ -121,10 +121,10 @@ def generate_pdf_report(df):
     }
     
     for _, row in df.iterrows():
-        nama = str(row.get('Nama_Mahasiswa', '-'))[:18]
-        user = str(row.get('Username', '-'))[:12]
+        nama = str(row.get('Nama_Mahasiswa', '-'))[:22]
+        user = str(row.get('Username', '-'))[:14]
         waktu = str(row.get('Timestamp', '-'))[:19]
-        dept = str(row.get('Department', '-'))[:16]
+        dept = str(row.get('Department', '-'))[:22]
         
         study = str(row.get('Study_Hours', 0))
         eskul = str(row.get('Extracurricular_Hours', 0))
@@ -132,20 +132,19 @@ def generate_pdf_report(df):
         sosial = str(row.get('Social_Hours', 0))
         fisik = str(row.get('Physical_Activity', 0))
         
-        # GPA Kategori di PDF
-        gpa_text = map_gpa_category(row.get('GPA', 0))[:25]
+        gpa_text = map_gpa_category(row.get('GPA', 0))[:30]
         
         raw_stres = row.get('Stress_Level', 3)
         if isinstance(raw_stres, (int, float)):
             stres = stress_mapping.get(int(raw_stres), str(raw_stres))
         else:
             stres = str(raw_stres)
-        stres = stres[:16]
+        stres = stres[:18]
         
-        masalah = str(row.get('Kategori_Masalah', '-'))[:12]
-        feedback = str(row.get('Feedback', '-'))[:25]
-        status = str(row.get('Prediction', '-'))[:14]
-        keterangan = str(row.get('Keterangan', '-'))[:20]
+        masalah = str(row.get('Kategori_Masalah', '-'))[:14]
+        feedback = str(row.get('Feedback', '-'))[:45]
+        status = str(row.get('Prediction', '-'))[:16]
+        keterangan = str(row.get('Keterangan', '-'))[:95]
         
         pdf.cell(col_widths['Nama'], 5.5, nama, border=1)
         pdf.cell(col_widths['User'], 5.5, user, border=1)
@@ -284,7 +283,6 @@ else:
             with col2:
                 physical_activity = st.number_input("Jam Aktivitas Fisik per Hari", min_value=0.0, max_value=24.0, value=1.0, step=0.5)
                 
-                # GPA Kategori Input Berdasarkan Pilihan Rentang
                 gpa_option = st.selectbox(
                     "Rentang Indeks Prestasi Kumulatif / GPA",
                     options=[
@@ -297,7 +295,7 @@ else:
                     format_func=lambda x: x[1],
                     index=2
                 )
-                GPA = gpa_option[0] # Nilai numerik untuk model ML
+                GPA = gpa_option[0]
                 
                 stress_option = st.selectbox(
                     "Tingkat Stres",
@@ -500,7 +498,6 @@ else:
             if 'Stress_Level' in df_filtered.columns:
                 df_filtered['Stress_Level'] = df_filtered['Stress_Level'].map(stress_mapping).fillna(df_filtered['Stress_Level'])
 
-            # Konversi GPA numerik menjadi kategori teks deskriptif pada tampilan tabel
             if 'GPA' in df_filtered.columns:
                 df_filtered['GPA'] = df_filtered['GPA'].apply(map_gpa_category)
 
