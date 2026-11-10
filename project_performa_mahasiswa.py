@@ -69,28 +69,30 @@ def map_gpa_category(val):
         return str(val)
 
 # ==========================================
-# 2. FUNGSI GENERATE LAPORAN PDF RESMI (KOLOM LEBIH LEBAR & JELAS)
+# 2. FUNGSI GENERATE LAPORAN PDF (LANDSCAPE & LEBAR PROPORSIONAL)
 # ==========================================
 def generate_pdf_report(df):
+    # Menggunakan A4 Landscape secara eksplisit (Lebar: 297mm, Tinggi: 210mm)
     pdf = FPDF(orientation='L', unit='mm', format='A4')
-    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=10)
+    pdf.add_page(orientation='L')
     
     # Header Laporan
-    pdf.set_font("Helvetica", 'B', 13)
+    pdf.set_font("Helvetica", 'B', 14)
     pdf.cell(0, 7, "LAPORAN REKAPITULASI MONITORING BIMBINGAN KONSELING (EWS)", ln=True, align='C')
-    pdf.set_font("Helvetica", '', 8.5)
+    pdf.set_font("Helvetica", '', 9)
     pdf.cell(0, 5, f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')} WIB | Early Warning System Mahasiswa", ln=True, align='C')
     pdf.ln(4)
     
-    # Header Tabel (Total Lebar = 277 mm untuk A4 Landscape)
+    # Header Tabel (Total Lebar pas 277 mm untuk A4 Landscape dengan margin 10mm kiri-kanan)
     pdf.set_font("Helvetica", 'B', 7)
     pdf.set_fill_color(230, 230, 230)
     
     col_widths = {
-        'Nama': 22, 'User': 12, 'Waktu': 25, 'Dept': 20, 
+        'Nama': 24, 'User': 14, 'Waktu': 25, 'Dept': 20, 
         'Study': 7, 'Eskul': 7, 'Tidur': 7, 'Sosial': 7, 'Fisik': 7, 
-        'GPA': 28, 'Stres': 15, 'Masalah': 13, 'Feedback': 30, 
-        'Status': 20, 'Keterangan': 60
+        'GPA': 30, 'Stres': 16, 'Masalah': 15, 'Feedback': 28, 
+        'Status': 22, 'Keterangan': 48
     }
     
     pdf.cell(col_widths['Nama'], 6, "Nama Mahasiswa", border=1, fill=True)
@@ -110,7 +112,7 @@ def generate_pdf_report(df):
     pdf.cell(col_widths['Keterangan'], 6, "Rekomendasi Tindakan BK", border=1, fill=True, ln=True)
     
     # Isi Baris Tabel
-    pdf.set_font("Helvetica", '', 6)
+    pdf.set_font("Helvetica", '', 6.5)
     
     stress_mapping = {
         1: "1 - Sangat Rendah",
@@ -121,10 +123,10 @@ def generate_pdf_report(df):
     }
     
     for _, row in df.iterrows():
-        nama = str(row.get('Nama_Mahasiswa', '-'))[:22]
-        user = str(row.get('Username', '-'))[:14]
+        nama = str(row.get('Nama_Mahasiswa', '-'))[:25]
+        user = str(row.get('Username', '-'))[:15]
         waktu = str(row.get('Timestamp', '-'))[:19]
-        dept = str(row.get('Department', '-'))[:22]
+        dept = str(row.get('Department', '-'))[:20]
         
         study = str(row.get('Study_Hours', 0))
         eskul = str(row.get('Extracurricular_Hours', 0))
@@ -132,7 +134,7 @@ def generate_pdf_report(df):
         sosial = str(row.get('Social_Hours', 0))
         fisik = str(row.get('Physical_Activity', 0))
         
-        gpa_text = map_gpa_category(row.get('GPA', 0))[:30]
+        gpa_text = map_gpa_category(row.get('GPA', 0))[:35]
         
         raw_stres = row.get('Stress_Level', 3)
         if isinstance(raw_stres, (int, float)):
@@ -141,26 +143,26 @@ def generate_pdf_report(df):
             stres = str(raw_stres)
         stres = stres[:18]
         
-        masalah = str(row.get('Kategori_Masalah', '-'))[:14]
-        feedback = str(row.get('Feedback', '-'))[:45]
+        masalah = str(row.get('Kategori_Masalah', '-'))[:16]
+        feedback = str(row.get('Feedback', '-'))[:40]
         status = str(row.get('Prediction', '-'))[:16]
-        keterangan = str(row.get('Keterangan', '-'))[:95]
+        keterangan = str(row.get('Keterangan', '-'))[:75]
         
-        pdf.cell(col_widths['Nama'], 5.5, nama, border=1)
-        pdf.cell(col_widths['User'], 5.5, user, border=1)
-        pdf.cell(col_widths['Waktu'], 5.5, waktu, border=1)
-        pdf.cell(col_widths['Dept'], 5.5, dept, border=1)
-        pdf.cell(col_widths['Study'], 5.5, study, border=1, align='C')
-        pdf.cell(col_widths['Eskul'], 5.5, eskul, border=1, align='C')
-        pdf.cell(col_widths['Tidur'], 5.5, tidur, border=1, align='C')
-        pdf.cell(col_widths['Sosial'], 5.5, sosial, border=1, align='C')
-        pdf.cell(col_widths['Fisik'], 5.5, fisik, border=1, align='C')
-        pdf.cell(col_widths['GPA'], 5.5, gpa_text, border=1, align='C')
-        pdf.cell(col_widths['Stres'], 5.5, stres, border=1)
-        pdf.cell(col_widths['Masalah'], 5.5, masalah, border=1)
-        pdf.cell(col_widths['Feedback'], 5.5, feedback, border=1)
-        pdf.cell(col_widths['Status'], 5.5, status, border=1)
-        pdf.cell(col_widths['Keterangan'], 5.5, keterangan, border=1, ln=True)
+        pdf.cell(col_widths['Nama'], 6, nama, border=1)
+        pdf.cell(col_widths['User'], 6, user, border=1)
+        pdf.cell(col_widths['Waktu'], 6, waktu, border=1)
+        pdf.cell(col_widths['Dept'], 6, dept, border=1)
+        pdf.cell(col_widths['Study'], 6, study, border=1, align='C')
+        pdf.cell(col_widths['Eskul'], 6, eskul, border=1, align='C')
+        pdf.cell(col_widths['Tidur'], 6, tidur, border=1, align='C')
+        pdf.cell(col_widths['Sosial'], 6, sosial, border=1, align='C')
+        pdf.cell(col_widths['Fisik'], 6, fisik, border=1, align='C')
+        pdf.cell(col_widths['GPA'], 6, gpa_text, border=1, align='C')
+        pdf.cell(col_widths['Stres'], 6, stres, border=1)
+        pdf.cell(col_widths['Masalah'], 6, masalah, border=1)
+        pdf.cell(col_widths['Feedback'], 6, feedback, border=1)
+        pdf.cell(col_widths['Status'], 6, status, border=1)
+        pdf.cell(col_widths['Keterangan'], 6, keterangan, border=1, ln=True)
         
     return pdf.output()
 
