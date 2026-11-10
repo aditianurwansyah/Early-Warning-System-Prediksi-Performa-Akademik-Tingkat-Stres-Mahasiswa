@@ -203,9 +203,11 @@ else:
                 gpa_sel = st.selectbox(
                     "Indeks Prestasi Kumulatif / GPA",
                     options=[
-                        (1, "1 - Rendah"),
-                        (2, "2 - Sedang"),
-                        (3, "3 - Tinggi")
+                        (1, "1 - Sangat Rendah (< 2.50)"),
+                        (2, "2 - Rendah (2.50-2.75)"),
+                        (3, "3 - Sedang (2.76-3.00)"),
+                        (4, "4 - Tinggi (3.01-3.50)"),
+                        (5, "5 - Sangat Tinggi (3.51-4.00)")
                     ],
                     format_func=lambda x: x[1],
                     index=2
