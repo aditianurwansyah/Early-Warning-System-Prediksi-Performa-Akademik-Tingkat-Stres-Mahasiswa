@@ -341,18 +341,55 @@ else:
             st.dataframe(df_filtered, use_container_width=True)
             st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memprioritaskan bimbingan bagi mahasiswa yang berstatus **Berisiko Tinggi**.")
 
-            # FITUR HAPUS DATA (Diberikan untuk Admin / BK)
+            # FITUR HAPUS MULTI-DATA (Pilih Banyak Sekaligus)
             st.markdown("---")
-            st.write(" **Manajemen Hapus Data Rekaman:**")
-            index_to_delete = st.number_input("Pilih indeks baris data yang ingin dihapus (lihat tabel di atas)", min_value=0, max_value=max(0, len(df_submissions)-1), step=1)
-            if st.button("Hapus Baris Data Terpilih", type="secondary"):
-                if not df_submissions.empty:
-                    df_submissions = df_submissions.drop(index_to_delete).reset_index(drop=True)
-                    df_submissions.to_csv(csv_file, index=False)
-                    st.success(f"Data pada indeks ke-{index_to_delete} berhasil dihapus!")
-                    st.rerun()
+            st.subheader("🗑️ Manajemen Hapus Data Rekaman")
+            
+            if not df_submissions.empty:
+                # Membuat label identifikasi unik untuk setiap baris data
+                df_submissions['Row_ID'] = [f"Baris {i} | Nama: {row['Nama_Mahasiswa']} | Waktu: {row['Timestamp']} | Status: {row['Prediction']}" for i, row in df_submissions.iterrows()]
+                
+                # Kotak pilihan multiselect
+                selected_items = st.multiselect(
+                    "Pilih data yang ingin dihapus (bisa memilih lebih dari satu):",
+                    options=df_submissions['Row_ID'].tolist()
+                )
+                
+                col_action1, col_action2 = st.columns(2)
+                
+                with col_action1:
+                    if st.button("Hapus Data Terpilih", type="primary"):
+                        if selected_items:
+                            # Ambil indeks asli dari string pilihan
+                            indices_to_drop = []
+                            for item in selected_items:
+                                idx_str = item.split("|")[0].replace("Baris", "").strip()
+                                indices_to_drop.append(int(idx_str))
+                            
+                            # Hapus baris dari DataFrame
+                            df_updated = df_submissions.drop(indices_to_drop).reset_index(drop=True)
+                            
+                            # Hapus kolom bantu 'Row_ID' sebelum disimpan kembali ke CSV
+                            if 'Row_ID' in df_updated.columns:
+                                df_updated = df_updated.drop(columns=['Row_ID'])
+                                
+                            df_updated.to_csv(csv_file, index=False)
+                            st.success(f"Berhasil menghapus {len(indices_to_drop)} data terpilih!")
+                            st.rerun()
+                        else:
+                            st.warning("Pilih minimal satu data pada kotak di atas untuk dihapus.")
+                
+                with col_action2:
+                    if st.button("Hapus / Bersihkan Semua Data", type="secondary"):
+                        # Mengosongkan file CSV dengan mempertahankan struktur kolomnya
+                        empty_df = pd.DataFrame(columns=['Nama_Mahasiswa', 'Username', 'Timestamp', 'GPA', 'Study_Hours', 'Stress_Level', 'Prediction'])
+                        empty_df.to_csv(csv_file, index=False)
+                        st.success("Semua riwayat data berhasil dibersihkan!")
+                        st.rerun()
+            else:
+                st.info("Belum ada data pengisian formulir dari mahasiswa.")
         else:
-            st.info("Belum ada data pengisian formulir dari mahasiswa. Data akan muncul di sini setelah mahasiswa melakukan prediksi mandiri.")
+            st.info("Belum ada data pengisian formulir dari mahasiswa. Data akan muncul di sini setelah mahasiswa melakukan prediksi mandiri.") 
 
     elif menu == "Visualisasi & Analisis Data":
         st.subheader(" Visualisasi Statistik & Eksplorasi Fitur Dataset")
