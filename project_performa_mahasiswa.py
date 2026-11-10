@@ -6,19 +6,22 @@ import plotly.express as px
 import os
 from datetime import datetime
 import hashlib
+from fpdf import FPDF
 
-# Konfigurasi Halaman Streamlit
+# ==========================================
+# 1. KONFIGURASI HALAMAN STREAMLIT
+# ==========================================
 st.set_page_config(
     page_title="Early Warning System - Performa Mahasiswa",
-    page_icon="https://upload.wikimedia.org/wikipedia/commons/8/86/Universitas_Teknologi_Bandung_Logo.png?utm_source=id.wikipedia.org&utm_campaign=index&utm_content=original",
+    page_icon="🎓",
     layout="wide"
 )
 
-# Fungsi enkripsi password sederhana
+# Fungsi Hash Password SHA-256
 def make_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
-# Inisialisasi Session State untuk Autentikasi
+# Inisialisasi Session State
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'username' not in st.session_state:
@@ -28,14 +31,13 @@ if 'nama_lengkap' not in st.session_state:
 if 'user_role' not in st.session_state:
     st.session_state.user_role = ""
 
-# File database akun lokal (CSV sederhana untuk autentikasi)
+# Database Akun Lokal (CSV)
 USER_DB = 'users_db.csv'
 
 def load_user_db():
     if os.path.exists(USER_DB):
         return pd.read_csv(USER_DB)
     else:
-        # Buat akun default jika belum ada
         df_default = pd.DataFrame([
             {"nama": "Administrator", "username": "admin", "password": make_hash("admin123"), "role": "Administrator"},
             {"nama": "Tim BK", "username": "bk", "password": make_hash("bk123"), "role": "Bimbingan Konseling"},
@@ -44,12 +46,73 @@ def load_user_db():
         df_default.to_csv(USER_DB, index=False)
         return df_default
 
-# Halaman Login & Registrasi (Jika Belum Login)
+# ==========================================
+# 2. FUNGSI GENERATE LAPORAN PDF RESMI
+# ==========================================
+def generate_pdf_report(df):
+    pdf = FPDF(orientation='L', unit='mm', format='A4')
+    pdf.add_page()
+    
+    # Header Laporan
+    pdf.set_font("Helvetica", 'B', 14)
+    pdf.cell(0, 8, "LAPORAN REKAPITULASI MONITORING BIMBINGAN KONSELING (EWS)", ln=True, align='C')
+    pdf.set_font("Helvetica", '', 9)
+    pdf.cell(0, 5, f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')} WIB | Early Warning System Mahasiswa", ln=True, align='C')
+    pdf.ln(5)
+    
+    # Header Tabel (Total Lebar = 277 mm untuk A4 Landscape)
+    pdf.set_font("Helvetica", 'B', 8)
+    pdf.set_fill_color(230, 230, 230)
+    
+    col_widths = {
+        'Nama': 25, 'Dept': 30, 'GPA': 12, 'Stres': 22, 
+        'Belajar': 14, 'Masalah': 22, 'Feedback': 52, 
+        'Status': 25, 'Keterangan': 75
+    }
+    
+    pdf.cell(col_widths['Nama'], 7, "Nama", border=1, fill=True)
+    pdf.cell(col_widths['Dept'], 7, "Departemen", border=1, fill=True)
+    pdf.cell(col_widths['GPA'], 7, "GPA", border=1, fill=True, align='C')
+    pdf.cell(col_widths['Stres'], 7, "Tingkat Stres", border=1, fill=True)
+    pdf.cell(col_widths['Belajar'], 7, "Belajar", border=1, fill=True, align='C')
+    pdf.cell(col_widths['Masalah'], 7, "Kategori", border=1, fill=True)
+    pdf.cell(col_widths['Feedback'], 7, "Feedback Mahasiswa", border=1, fill=True)
+    pdf.cell(col_widths['Status'], 7, "Status Risiko", border=1, fill=True)
+    pdf.cell(col_widths['Keterangan'], 7, "Rekomendasi Tindakan BK", border=1, fill=True, ln=True)
+    
+    # Isi Baris Tabel
+    pdf.set_font("Helvetica", '', 7.5)
+    for _, row in df.iterrows():
+        nama = str(row.get('Nama_Mahasiswa', '-'))[:16]
+        dept = str(row.get('Department', '-'))[:18]
+        gpa = f"{row.get('GPA', 0):.2f}"
+        stres = str(row.get('Stress_Level', '-'))[:12]
+        belajar = f"{row.get('Study_Hours', 0)} jam"
+        masalah = str(row.get('Kategori_Masalah', '-'))[:12]
+        feedback = str(row.get('Feedback', '-'))[:35]
+        status = str(row.get('Prediction', '-'))[:15]
+        keterangan = str(row.get('Keterangan', '-'))[:50]
+        
+        pdf.cell(col_widths['Nama'], 6, nama, border=1)
+        pdf.cell(col_widths['Dept'], 6, dept, border=1)
+        pdf.cell(col_widths['GPA'], 6, gpa, border=1, align='C')
+        pdf.cell(col_widths['Stres'], 6, stres, border=1)
+        pdf.cell(col_widths['Belajar'], 6, belajar, border=1, align='C')
+        pdf.cell(col_widths['Masalah'], 6, masalah, border=1)
+        pdf.cell(col_widths['Feedback'], 6, feedback, border=1)
+        pdf.cell(col_widths['Status'], 6, status, border=1)
+        pdf.cell(col_widths['Keterangan'], 6, keterangan, border=1, ln=True)
+        
+    return pdf.output()
+
+# ==========================================
+# 3. AUTENTIKASI (LOGIN & REGISTRASI)
+# ==========================================
 if not st.session_state.logged_in:
-    st.title("Early Warning System (EWS) - Performa & Risiko Akademik")
+    st.title("🎓 Early Warning System (EWS) - Performa & Risiko Akademik")
     st.markdown("---")
     
-    tab_login, tab_register = st.tabs(["Masuk (Login)", "Registrasi Akun Mahasiswa"])
+    tab_login, tab_register = st.tabs(["🔐 Masuk (Login)", "📝 Registrasi Akun Mahasiswa"])
     
     with tab_login:
         st.subheader("Silakan Masuk ke Akun Anda")
@@ -59,8 +122,8 @@ if not st.session_state.logged_in:
         if st.button("Masuk", type="primary"):
             users_df = load_user_db()
             hashed_pass = make_hash(login_pass)
-            
             matched = users_df[(users_df['username'] == login_user) & (users_df['password'] == hashed_pass)]
+            
             if not matched.empty:
                 st.session_state.logged_in = True
                 st.session_state.username = login_user
@@ -91,12 +154,12 @@ if not st.session_state.logged_in:
                     }])
                     users_df = pd.concat([users_df, new_row], ignore_index=True)
                     users_df.to_csv(USER_DB, index=False)
-                    st.success("Registrasi berhasil! Silakan pindah ke tab 'Masuk (Login)' untuk masuk.")
+                    st.success("Registrasi berhasil! Silakan berpindah ke tab 'Masuk (Login)'.")
             else:
-                st.warning("Mohon lengkapi semua kolom pendaftaran.")
+                st.warning("Mohon lengkapi seluruh kolom pendaftaran.")
 
 else:
-    # Sidebar Navigasi Berdasarkan Peran (RBAC)
+    # Navigasi Sidebar (RBAC)
     st.sidebar.title(f"Halo, {st.session_state.nama_lengkap}")
     st.sidebar.caption(f"Peran: **{st.session_state.user_role}**")
     st.sidebar.markdown("---")
@@ -109,14 +172,14 @@ else:
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
     st.sidebar.markdown("---")
-    if st.sidebar.button("Keluar (Logout)"):
+    if st.sidebar.button("🚪 Keluar (Logout)"):
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.session_state.nama_lengkap = ""
         st.session_state.user_role = ""
         st.rerun()
 
-    # Memuat Model Machine Learning (.pkl)
+    # Memuat Model Machine Learning
     @st.cache_resource
     def load_model():
         model_path = 'model_rf.pkl' 
@@ -127,25 +190,25 @@ else:
     model = load_model()
 
     # ==========================================
-    # MENU: BERANDA
+    # MENU 1: BERANDA
     # ==========================================
     if menu == "Beranda":
-        st.subheader("Selamat Datang di Sistem Early Warning System (EWS)")
+        st.subheader("🎓 Selamat Datang di Dashboard Early Warning System (EWS)")
         st.write("Purwarupa sistem berbasis *Machine Learning* untuk memantau performa akademik dan tingkat risiko mahasiswa berdasarkan analisis gaya hidup (*student lifestyle*).")
         
-        st.info("**Panduan Penggunaan:**\n"
-                "- **Mahasiswa:** Gunakan menu *Prediksi Mandiri Mahasiswa* untuk mengevaluasi kondisi harian Anda dan mengirimkan konsultasi ke BK.\n"
-                "- **Tim BK / Admin:** Gunakan menu *Monitoring Mahasiswa Berisiko* untuk melihat rekapitulasi data, membaca keluhan, serta mengunduh laporan rekap.")
+        st.info("💡 **Panduan Penggunaan Sistem:**\n"
+                "- **Mahasiswa:** Gunakan menu *Prediksi Mandiri Mahasiswa* untuk melakukan evaluasi mandiri dan mengirimkan konsultasi ke BK.\n"
+                "- **Tim BK / Admin:** Gunakan menu *Monitoring Mahasiswa Berisiko* untuk merekap data, melihat detail rekomendasi, membaca keluhan, serta mengunduh laporan PDF resmi.")
 
     # ==========================================
-    # MENU: PREDIKSI MANDIRI MAHASISWA
+    # MENU 2: PREDIKSI MANDIRI MAHASISWA
     # ==========================================
     elif menu == "Prediksi Mandiri Mahasiswa":
-        st.subheader("Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
+        st.subheader("📋 Formulir Evaluasi Gaya Hidup & Prediksi Risiko")
         st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan masukkan parameter gaya hidup dan keluhan Anda di bawah ini:")
 
         if model is None:
-            st.warning("File model machine learning (`model_rf.pkl`) belum ditemukan di direktori Anda.")
+            st.warning("⚠️ File model machine learning (`model_rf.pkl`) belum ditemukan di direktori Anda.")
         else:
             col1, col2 = st.columns(2)
             
@@ -158,7 +221,7 @@ else:
             with col2:
                 physical_activity = st.number_input("Jam Aktivitas Fisik per Hari", min_value=0.0, max_value=24.0, value=1.0, step=0.5)
                 
-                # Input GPA berbentuk desimal akurat
+                # Desimal GPA
                 GPA = st.number_input(
                     "Indeks Prestasi Kumulatif / GPA Terakhir", 
                     min_value=0.00, 
@@ -223,7 +286,7 @@ else:
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                    # Rekomendasi Tindakan / Keterangan
+                    # Rekomendasi Tindakan BK
                     if status_str == "Berisiko Tinggi":
                         keterangan_tindakan = "Wajib segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif."
                     elif status_str == "Risiko Sedang":
@@ -231,23 +294,23 @@ else:
                     else:
                         keterangan_tindakan = "Pertahankan pola gaya hidup seimbang, jaga konsistensi belajar, dan pertahankan waktu istirahat."
 
-                    # Analisis Faktor Pemicu Otomatis (Trigger Explanation)
+                    # Analisis Pemicu Otomatis (Trigger Explanation)
                     triggers = []
                     if sleep_hour < 6.0:
-                        triggers.append(f"**Durasi Tidur Kurang:** Hanya {sleep_hour} jam/hari (di bawah standar sehat 7-8 jam).")
+                        triggers.append(f"⏱️ **Durasi Tidur Kurang:** Hanya {sleep_hour} jam/hari (di bawah standar sehat 7-8 jam).")
                     if study_hour < 2.0:
-                        triggers.append(f"**Jam Belajar Rendah:** Hanya {study_hour} jam/hari, berisiko menurunkan pemahaman materi.")
+                        triggers.append(f"📚 **Jam Belajar Rendah:** Hanya {study_hour} jam/hari, berisiko menurunkan pemahaman materi.")
                     elif study_hour > 10.0:
-                        triggers.append(f"**Beban Belajar Berlebih (Overload):** {study_hour} jam/hari berisiko memicu kelelahan mental (*burnout*).")
+                        triggers.append(f"⚠️ **Beban Belajar Berlebih (Overload):** {study_hour} jam/hari berisiko memicu kelelahan mental (*burnout*).")
                     if stress_level >= 4:
-                        triggers.append(f"**Tingkat Stres Tinggi:** Skor stres berada di angka {stress_level}/5.")
+                        triggers.append(f"🧠 **Tingkat Stres Tinggi:** Skor stres berada di angka {stress_level}/5.")
                     if GPA <= 2.50:
-                        triggers.append(f"**Indeks Prestasi (GPA):** Berada pada kategori rendah ({GPA}).")
+                        triggers.append(f"📉 **Indeks Prestasi (GPA):** Berada pada kategori rendah ({GPA:.2f}).")
                     if social_hour > 6.0:
-                        triggers.append(f"**Waktu Sosialisasi Tinggi:** {social_hour} jam/hari berpotensi menyita waktu produktif.")
+                        triggers.append(f"🎉 **Waktu Sosialisasi Tinggi:** {social_hour} jam/hari berpotensi menyita waktu produktif.")
                     
                     if not triggers:
-                        triggers.append("Seluruh parameter gaya hidup berada dalam rentang yang seimbang dan sehat.")
+                        triggers.append("✨ Seluruh parameter gaya hidup berada dalam rentang yang seimbang dan sehat.")
 
                     # SIMPAN HASIL KE CSV
                     result_record = {
@@ -275,27 +338,27 @@ else:
                         df_record.to_csv(csv_file, mode='a', header=False, index=False)
 
                     st.markdown("---")
-                    st.subheader("Hasil Analisis Sistem & Rekomendasi:")
+                    st.subheader("📌 Hasil Analisis Sistem & Rekomendasi:")
                     
                     if status_str == "Berisiko Tinggi":
-                        st.error("**Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Krisis Akademik)**")
+                        st.error("🚨 **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Krisis Akademik)**")
                         st.warning(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
                     elif status_str == "Risiko Sedang":
-                        st.warning("**Status: RISIKO SEDANG (Perlu Perhatian & Penyesuaian Gaya Hidup)**")
+                        st.warning("⚠️ **Status: RISIKO SEDANG (Perlu Perhatian & Penyesuaian Gaya Hidup)**")
                         st.info(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
                     else:
-                        st.success("**Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
+                        st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
                     
-                    # TAMPILKAN ANALISIS PEMICU
+                    # Analisis Pemicu
                     st.write("---")
-                    st.write("**Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
+                    st.write("🔍 **Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
                     for trig in triggers:
                         st.markdown(f"- {trig}")
 
-                    # Visualisasi Confidence Score (Plotly dengan Urutan & Warna Kustom Pasti)
+                    # Visualisasi Confidence Score (Plotly)
                     st.write("---")
-                    st.write("**Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                    st.write("📊 **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
                     
                     prob_values = prediction_proba[0]
                     
@@ -303,7 +366,7 @@ else:
                         chart_df = pd.DataFrame({
                             'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
                             'Probabilitas': [prob_values[0], prob_values[1], prob_values[2]],
-                            'Warna': ["#2ecc71", "#f39c12", "#e74c3c"]  # Hijau, Oranye, Merah
+                            'Warna': ["#2ecc71", "#f39c12", "#e74c3c"]
                         })
                     else:
                         chart_df = pd.DataFrame({
@@ -339,10 +402,10 @@ else:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
 
     # ==========================================
-    # MENU: MONITORING MAHASISWA BERISIKO (BK / ADMIN)
+    # MENU 3: MONITORING MAHASISWA BERISIKO (BK / ADMIN)
     # ==========================================
     elif menu == "Monitoring Mahasiswa Berisiko":
-        st.subheader("Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
+        st.subheader("📊 Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
         st.write("Berikut adalah rekapitulasi data mahasiswa beserta rincian departemen, keluhan, dan rekomendasi tindakan:")
 
         csv_file = 'student_predictions.csv'
@@ -375,7 +438,7 @@ else:
             else:
                 df_filtered = df_submissions.copy()
 
-            # Pemetaan tingkat stres agar tampil deskriptif di tabel
+            # Mapping Stres Deskriptif
             stress_mapping = {
                 1: "1 - Sangat Rendah",
                 2: "2 - Rendah",
@@ -386,7 +449,7 @@ else:
             if 'Stress_Level' in df_filtered.columns:
                 df_filtered['Stress_Level'] = df_filtered['Stress_Level'].map(stress_mapping).fillna(df_filtered['Stress_Level'])
 
-            # Menampilkan tabel interaktif yang rapi dengan column_config
+            # Tabel Interaktif dengan Lebar Kolom Fleksibel
             st.dataframe(
                 df_filtered, 
                 use_container_width=True,
@@ -398,24 +461,27 @@ else:
                 }
             )
             
-            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter status risiko dan mengunduh laporan rekapitulasi di bawah.")
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter status risiko dan mengunduh laporan PDF resmi di bawah ini.")
 
-            # Fitur Unduh Laporan Rekapitulasi (.csv)
+            # FITUR UNDUH LAPORAN PDF
             st.markdown("---")
-            st.subheader("Unduh Laporan Rekapitulasi Data")
+            st.subheader("📥 Unduh Laporan Rekapitulasi (PDF Resmi)")
             
-            csv_export = df_filtered.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Unduh Data Tabel (Format CSV)",
-                data=csv_export,
-                file_name=f"Laporan_Monitoring_BK_{datetime.now().strftime('%Y-%m-%d')}.csv",
-                mime="text/csv",
-                help="Klik untuk mengunduh rekapitulasi data mahasiswa untuk laporan sidang atau arsip BK."
-            )
+            try:
+                pdf_data = generate_pdf_report(df_filtered)
+                st.download_button(
+                    label="📄 Unduh Laporan Rekapitulasi BK (Format PDF)",
+                    data=bytes(pdf_data),
+                    file_name=f"Laporan_Monitoring_BK_{datetime.now().strftime('%Y-%m-%d')}.pdf",
+                    mime="application/pdf",
+                    help="Klik untuk mengunduh laporan PDF rapi berformat A4 Landscape untuk arsip BK atau lampiran skripsi."
+                )
+            except Exception as e:
+                st.error(f"Gagal memproses file PDF: {e}. Pastikan modul 'fpdf2' sudah terinstall di komputer Anda.")
 
-            # Fitur Manajemen Hapus Data Rekaman (Multiselect & Clear All)
+            # MANAJEMEN HAPUS MULTI-DATA
             st.markdown("---")
-            st.subheader("Manajemen Hapus Data Rekaman")
+            st.subheader("🗑️ Manajemen Hapus Data Rekaman")
             
             row_labels = []
             for i, row in df_submissions.iterrows():
@@ -462,10 +528,10 @@ else:
             st.info("Belum ada data pengisian formulir dari mahasiswa.")
 
     # ==========================================
-    # MENU: VISUALISASI & ANALISIS DATA
+    # MENU 4: VISUALISASI & ANALISIS DATA
     # ==========================================
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader("Visualisasi & Analisis Data Keseluruhan")
+        st.subheader("📈 Visualisasi & Analisis Data Keseluruhan")
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
             df_all = pd.read_csv(csv_file)
@@ -484,9 +550,9 @@ else:
             st.info("Belum ada file data riwayat prediksi.")
 
     # ==========================================
-    # MENU: TENTANG DATASET & FITUR
+    # MENU 5: TENTANG DATASET & FITUR
     # ==========================================
     elif menu == "Tentang Dataset & Fitur":
         st.subheader("ℹ️ Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen wawancara Bimbingan Konseling berbasis *Machine Learning*.")
-        st.markdown("- **Model:** Random Forest / XGBoost Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC\n- **Fitur Utama:** Prediksi Mandiri, Analisis Pemicu Otomatis, Monitoring BK, Rekomendasi Tindakan, dan Ekspor Laporan.")
+        st.markdown("- **Model:** Random Forest / XGBoost Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC\n- **Fitur Utama:** Prediksi Mandiri, Analisis Pemicu Otomatis, Monitoring BK, Rekomendasi Tindakan, dan Ekspor Laporan PDF.")
