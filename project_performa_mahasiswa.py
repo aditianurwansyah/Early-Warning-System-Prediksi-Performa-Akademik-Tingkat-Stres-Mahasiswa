@@ -461,11 +461,11 @@ else:
             # PEMETAAN ANGKA STRESS LEVEL MENJADI TEKS DESKRIPTIF
             # ==========================================
             stress_mapping = {
-                1: "1 - Sangat Rendah",
-                2: "2 - Rendah",
-                3: "3 - Sedang",
-                4: "4 - Tinggi",
-                5: "5 - Sangat Tinggi"
+                1: "Sangat Rendah",
+                2: "Rendah",
+                3: "Sedang",
+                4: "Tinggi",
+                5: "Sangat Tinggi"
             }
             if 'Stress_Level' in df_filtered.columns:
                 # Mengubah angka menjadi teks berdasarkan kamus stress_mapping
