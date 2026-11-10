@@ -69,10 +69,9 @@ def map_gpa_category(val):
         return str(val)
 
 # ==========================================
-# 2. FUNGSI GENERATE LAPORAN PDF (LANDSCAPE & LEBAR PROPORSIONAL)
+# 2. FUNGSI GENERATE LAPORAN PDF (LEBAR KOLOM PROPORSIONAL & TIDAK OVERFLOW)
 # ==========================================
 def generate_pdf_report(df):
-    # Menggunakan A4 Landscape secara eksplisit (Lebar: 297mm, Tinggi: 210mm)
     pdf = FPDF(orientation='L', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page(orientation='L')
@@ -84,15 +83,15 @@ def generate_pdf_report(df):
     pdf.cell(0, 5, f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')} WIB | Early Warning System Mahasiswa", ln=True, align='C')
     pdf.ln(4)
     
-    # Header Tabel (Total Lebar pas 277 mm untuk A4 Landscape dengan margin 10mm kiri-kanan)
+    # Header Tabel (Total Lebar pas 277 mm untuk A4 Landscape)
     pdf.set_font("Helvetica", 'B', 7)
     pdf.set_fill_color(230, 230, 230)
     
     col_widths = {
-        'Nama': 24, 'User': 14, 'Waktu': 25, 'Dept': 20, 
-        'Study': 7, 'Eskul': 7, 'Tidur': 7, 'Sosial': 7, 'Fisik': 7, 
-        'GPA': 30, 'Stres': 16, 'Masalah': 15, 'Feedback': 28, 
-        'Status': 22, 'Keterangan': 48
+        'Nama': 24, 'User': 12, 'Waktu': 24, 'Dept': 20, 
+        'Study': 6, 'Eskul': 6, 'Tidur': 6, 'Sosial': 6, 'Fisik': 6, 
+        'GPA': 28, 'Stres': 16, 'Masalah': 21, 'Feedback': 26, 
+        'Status': 20, 'Keterangan': 36
     }
     
     pdf.cell(col_widths['Nama'], 6, "Nama Mahasiswa", border=1, fill=True)
@@ -123,10 +122,10 @@ def generate_pdf_report(df):
     }
     
     for _, row in df.iterrows():
-        nama = str(row.get('Nama_Mahasiswa', '-'))[:25]
-        user = str(row.get('Username', '-'))[:15]
+        nama = str(row.get('Nama_Mahasiswa', '-'))[:24]
+        user = str(row.get('Username', '-'))[:12]
         waktu = str(row.get('Timestamp', '-'))[:19]
-        dept = str(row.get('Department', '-'))[:20]
+        dept = str(row.get('Department', '-'))[:18]
         
         study = str(row.get('Study_Hours', 0))
         eskul = str(row.get('Extracurricular_Hours', 0))
@@ -134,7 +133,7 @@ def generate_pdf_report(df):
         sosial = str(row.get('Social_Hours', 0))
         fisik = str(row.get('Physical_Activity', 0))
         
-        gpa_text = map_gpa_category(row.get('GPA', 0))[:35]
+        gpa_text = map_gpa_category(row.get('GPA', 0))[:32]
         
         raw_stres = row.get('Stress_Level', 3)
         if isinstance(raw_stres, (int, float)):
@@ -143,10 +142,11 @@ def generate_pdf_report(df):
             stres = str(raw_stres)
         stres = stres[:18]
         
-        masalah = str(row.get('Kategori_Masalah', '-'))[:16]
-        feedback = str(row.get('Feedback', '-'))[:40]
-        status = str(row.get('Prediction', '-'))[:16]
-        keterangan = str(row.get('Keterangan', '-'))[:75]
+        # Batasi karakter kategori agar pas di kolom 21mm
+        masalah = str(row.get('Kategori_Masalah', '-'))[:13]
+        feedback = str(row.get('Feedback', '-'))[:35]
+        status = str(row.get('Prediction', '-'))[:15]
+        keterangan = str(row.get('Keterangan', '-'))[:55]
         
         pdf.cell(col_widths['Nama'], 6, nama, border=1)
         pdf.cell(col_widths['User'], 6, user, border=1)
