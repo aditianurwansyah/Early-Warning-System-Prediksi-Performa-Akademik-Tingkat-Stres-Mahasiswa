@@ -407,74 +407,96 @@ else:
 
     elif menu == "Monitoring Mahasiswa Berisiko":
         st.subheader(" Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
-        st.write("Berikut adalah rekapitulasi data mahasiswa yang telah mengisi *Formulir Evaluasi Gaya Hidup & Prediksi Risiko*:")
+        st.write("Berikut adalah rekapitulasi data mahasiswa yang telah mengisi *Formulir Evaluasi Gaya Hidup & Prediksi Risiko* beserta rincian parameter dan keluhan mereka:")
 
         csv_file = 'student_predictions.csv'
+        df_submissions = pd.DataFrame()
+        
+        # Penanganan aman jika file CSV belum ada atau format kolomnya tidak sinkron (mencegah ParserError)
         if os.path.exists(csv_file):
-            df_submissions = pd.read_csv(csv_file)
-            
+            try:
+                df_submissions = pd.read_csv(csv_file)
+            except Exception:
+                # Jika file CSV korup/format lama, hapus dan buat ulang secara bersih
+                os.remove(csv_file)
+                df_submissions = pd.DataFrame(columns=[
+                    'Nama_Mahasiswa', 'Username', 'Timestamp', 'Study_Hours', 
+                    'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
+                    'Physical_Activity', 'GPA', 'Stress_Level', 
+                    'Kategori_Masalah', 'Feedback', 'Prediction'
+                ])
+        else:
+            df_submissions = pd.DataFrame(columns=[
+                'Nama_Mahasiswa', 'Username', 'Timestamp', 'Study_Hours', 
+                'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
+                'Physical_Activity', 'GPA', 'Stress_Level', 
+                'Kategori_Masalah', 'Feedback', 'Prediction'
+            ])
+
+        if not df_submissions.empty:
             # Filter berdasarkan status risiko
-            risk_filter = st.selectbox("Filter Berdasarkan Status Risiko:", ["Semua Data", "Berisiko Tinggi", "Aman"])
-            if risk_filter == "Berisiko Tinggi":
-                df_filtered = df_submissions[df_submissions['Prediction'] == "Berisiko Tinggi"]
-            elif risk_filter == "Aman":
-                df_filtered = df_submissions[df_submissions['Prediction'] == "Aman"]
+            risk_filter = st.selectbox("Filter Berdasarkan Status Risiko:", ["Semua Data", "Berisiko Tinggi", "Risiko Sedang", "Aman"])
+            if risk_filter != "Semua Data" and 'Prediction' in df_submissions.columns:
+                df_filtered = df_submissions[df_submissions['Prediction'] == risk_filter]
             else:
                 df_filtered = df_submissions
 
+            # Menampilkan tabel dengan seluruh kolom lengkap (Jam belajar, tidur, eskul, sosialisasi, aktivitas, GPA, stres, feedback, dll)
             st.dataframe(df_filtered, use_container_width=True)
-            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memprioritaskan bimbingan bagi mahasiswa yang berstatus **Berisiko Tinggi**.")
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memprioritaskan bimbingan bagi mahasiswa berstatus **Berisiko Tinggi** dan membaca **Feedback** keluhan mereka.")
 
-            # FITUR HAPUS MULTI-DATA (Pilih Banyak Sekaligus)
+            # FITUR HAPUS MULTI-DATA
             st.markdown("---")
             st.subheader("Manajemen Hapus Data Rekaman")
             
-            if not df_submissions.empty:
-                # Membuat label identifikasi unik untuk setiap baris data
-                df_submissions['Row_ID'] = [f"Baris {i} | Nama: {row['Nama_Mahasiswa']} | Waktu: {row['Timestamp']} | Status: {row['Prediction']}" for i, row in df_submissions.iterrows()]
-                
-                # Kotak pilihan multiselect
-                selected_items = st.multiselect(
-                    "Pilih data yang ingin dihapus (bisa memilih lebih dari satu):",
-                    options=df_submissions['Row_ID'].tolist()
-                )
-                
-                col_action1, col_action2 = st.columns(2)
-                
-                with col_action1:
-                    if st.button("Hapus Data Terpilih", type="primary"):
-                        if selected_items:
-                            # Ambil indeks asli dari string pilihan
-                            indices_to_drop = []
-                            for item in selected_items:
-                                idx_str = item.split("|")[0].replace("Baris", "").strip()
-                                indices_to_drop.append(int(idx_str))
+            row_labels = []
+            for i, row in df_submissions.iterrows():
+                nama = row.get('Nama_Mahasiswa', 'Tanpa Nama')
+                waktu = row.get('Timestamp', '-')
+                status = row.get('Prediction', '-')
+                row_labels.append(f"Baris {i} | Nama: {nama} | Waktu: {waktu} | Status: {status}")
+            
+            df_submissions['Row_ID'] = row_labels
+            
+            selected_items = st.multiselect(
+                "Pilih data yang ingin dihapus (bisa memilih lebih dari satu):",
+                options=df_submissions['Row_ID'].tolist()
+            )
+            
+            col_action1, col_action2 = st.columns(2)
+            
+            with col_action1:
+                if st.button("Hapus Data Terpilih", type="primary"):
+                    if selected_items:
+                        indices_to_drop = []
+                        for item in selected_items:
+                            idx_str = item.split("|")[0].replace("Baris", "").strip()
+                            indices_to_drop.append(int(idx_str))
+                        
+                        df_updated = df_submissions.drop(indices_to_drop).reset_index(drop=True)
+                        if 'Row_ID' in df_updated.columns:
+                            df_updated = df_updated.drop(columns=['Row_ID'])
                             
-                            # Hapus baris dari DataFrame
-                            df_updated = df_submissions.drop(indices_to_drop).reset_index(drop=True)
-                            
-                            # Hapus kolom bantu 'Row_ID' sebelum disimpan kembali ke CSV
-                            if 'Row_ID' in df_updated.columns:
-                                df_updated = df_updated.drop(columns=['Row_ID'])
-                                
-                            df_updated.to_csv(csv_file, index=False)
-                            st.success(f"Berhasil menghapus {len(indices_to_drop)} data terpilih!")
-                            st.rerun()
-                        else:
-                            st.warning("Pilih minimal satu data pada kotak di atas untuk dihapus.")
-                
-                with col_action2:
-                    if st.button("Hapus / Bersihkan Semua Data", type="secondary"):
-                        # Mengosongkan file CSV dengan mempertahankan struktur kolomnya
-                        empty_df = pd.DataFrame(columns=['Nama_Mahasiswa', 'Username', 'Timestamp', 'GPA', 'Study_Hours', 'Stress_Level', 'Prediction'])
-                        empty_df.to_csv(csv_file, index=False)
-                        st.success("Semua riwayat data berhasil dibersihkan!")
+                        df_updated.to_csv(csv_file, index=False)
+                        st.success(f"Berhasil menghapus {len(indices_to_drop)} data terpilih!")
                         st.rerun()
-            else:
-                st.info("Belum ada data pengisian formulir dari mahasiswa.")
+                    else:
+                        st.warning("Pilih minimal satu data pada kotak di atas untuk dihapus.")
+            
+            with col_action2:
+                if st.button("Hapus / Bersihkan Semua Data", type="secondary"):
+                    empty_df = pd.DataFrame(columns=[
+                        'Nama_Mahasiswa', 'Username', 'Timestamp', 'Study_Hours', 
+                        'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
+                        'Physical_Activity', 'GPA', 'Stress_Level', 
+                        'Kategori_Masalah', 'Feedback', 'Prediction'
+                    ])
+                    empty_df.to_csv(csv_file, index=False)
+                    st.success("Semua riwayat data berhasil dibersihkan!")
+                    st.rerun()
         else:
             st.info("Belum ada data pengisian formulir dari mahasiswa. Data akan muncul di sini setelah mahasiswa melakukan prediksi mandiri.") 
-
+            
     elif menu == "Visualisasi & Analisis Data":
         st.subheader(" Visualisasi Statistik & Eksplorasi Fitur Dataset")
         st.write("Bagian ini menampilkan grafik interaktif beranimasi untuk perbandingan parameter gaya hidup terhadap performa akademik mahasiswa.")
