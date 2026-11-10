@@ -281,35 +281,35 @@ else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                     
-                   # Visualisasi Confidence Score
+                   # Visualisasi Confidence Score dengan Warna Pasti (Aman=Hijau, Sedang=Oranye, Tinggi=Merah)
                     st.write("---")
                     st.write("**Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
                     
-                    # Ambil nilai probabilitas dari model (misal berbentuk array [prob_aman, prob_tinggi, prob_sedang])
                     prob_values = prediction_proba[0]
                     
-                    # Petakan nilai probabilitas ke kategori dengan urutan yang diinginkan:
+                    # Buat DataFrame beserta kolom warna spesifik untuk tiap kategori
                     chart_df = pd.DataFrame({
                         'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
-                        'Probabilitas': [prob_values[0], prob_values[2], prob_values[1]]
+                        'Probabilitas': [prob_values[0], prob_values[2], prob_values[1]],
+                        'Warna': ["#2ecc71", "#f39c12", "#e74c3c"]  # Hijau, Oranye/Kuning, Merah
                     })
-                    color_mapping = {
-                        "Aman": "#2ecc71",            # Hijau
-                        "Risiko Sedang": "#f39c12",   # Kuning / Oranye
-                        "Berisiko Tinggi": "#e74c3c"  # Merah
-                    } 
-                    # Buat bar chart interaktif 
+                    
                     fig_conf = px.bar(
                         chart_df,
                         x='Kategori Risiko',
                         y='Probabilitas',
-                        color='Kategori Risiko',
                         text='Probabilitas',
                         template='plotly_dark',
-                        category_orders={'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"]} 
+                        category_orders={'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"]}
                     )
                     
-                    fig_conf.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+                    # Paksa warna bar sesuai urutan di DataFrame menggunakan marker_color
+                    fig_conf.update_traces(
+                        marker_color=chart_df['Warna'],
+                        texttemplate='%{text:.2f}', 
+                        textposition='outside'
+                    )
+                    
                     fig_conf.update_layout(
                         showlegend=False, 
                         yaxis=dict(range=[0, 1.1]), 
