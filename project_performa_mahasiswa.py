@@ -427,8 +427,7 @@ else:
                     
                 except Exception as e:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
-
-   elif menu == "Monitoring Mahasiswa Berisiko":
+     elif menu == "Monitoring Mahasiswa Berisiko":
         st.subheader("Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
         st.write("Berikut adalah rekapitulasi data mahasiswa beserta keterangan rekomendasi tindakan dan keluhan mereka:")
 
