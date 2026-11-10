@@ -281,7 +281,7 @@ else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                     
-                   # Visualisasi Confidence Score menggunakan Plotly Express (Urutan Terkunci)
+                   # Visualisasi Confidence Score
                     st.write("---")
                     st.write("**Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
                     
@@ -289,14 +289,16 @@ else:
                     prob_values = prediction_proba[0]
                     
                     # Petakan nilai probabilitas ke kategori dengan urutan yang diinginkan:
-                    # Indeks [0] = Aman, Indeks [2] = Risiko Sedang, Indeks [1] = Berisiko Tinggi 
-                    # (Sesuaikan indeks jika urutan asli model Anda berbeda)
                     chart_df = pd.DataFrame({
                         'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
                         'Probabilitas': [prob_values[0], prob_values[2], prob_values[1]]
                     })
-                    
-                    # Buat bar chart interaktif dengan Plotly
+                    color_mapping = {
+                        "Aman": "#2ecc71",            # Hijau
+                        "Risiko Sedang": "#f39c12",   # Kuning / Oranye
+                        "Berisiko Tinggi": "#e74c3c"  # Merah
+                    } 
+                    # Buat bar chart interaktif 
                     fig_conf = px.bar(
                         chart_df,
                         x='Kategori Risiko',
@@ -304,7 +306,7 @@ else:
                         color='Kategori Risiko',
                         text='Probabilitas',
                         template='plotly_dark',
-                        category_orders={'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"]} # Mengunci urutan mutlak
+                        category_orders={'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"]} 
                     )
                     
                     fig_conf.update_traces(texttemplate='%{text:.2f}', textposition='outside')
