@@ -285,16 +285,17 @@ else:
                     st.write("---")
                     st.write("**Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
                     
-                    # 1. Buat DataFrame awal berdasarkan probabilitas model
+                    # 1. Definisikan urutan yang diinginkan dari kiri ke kanan
+                    desired_order = ["Aman", "Risiko Sedang", "Berisiko Tinggi"]
+                    
+                    # 2. Buat DataFrame dari probabilitas model
                     chart_data = pd.DataFrame(prediction_proba, columns=["Aman", "Berisiko Tinggi", "Risiko Sedang"]).T
                     chart_data.columns = ["Probabilitas"]
                     
-                    # 2. Atur ulang urutan (reindex) sesuai tingkat keparahan risiko yang diinginkan:
-                    # Urutan: Aman -> Risiko Sedang -> Berisiko Tinggi
-                    desired_order = ["Aman", "Risiko Sedang", "Berisiko Tinggi"]
+                    # 3. Terapkan reindex agar urutannya sesuai dengan desired_order
                     chart_data = chart_data.reindex(desired_order)
                     
-                    # 3. Tampilkan bar chart dengan urutan yang sudah rapi
+                    # 4. Tampilkan grafik
                     st.bar_chart(chart_data)
                     
                 except Exception as e:
