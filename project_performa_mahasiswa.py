@@ -291,7 +291,7 @@ else:
                     if num_classes == 3:
                         class_labels = ["Aman", "Risiko Sedang", "Berisiko Tinggi"]
                     elif num_classes == 2:
-                        class_labels = ["Aman", "Berisiko Tinggi"]
+                        class_labels = ["Aman", "Berisiko Sedang"]
                     else:
                         class_labels = [f"Kelas {i}" for i in range(num_classes)]
                     
