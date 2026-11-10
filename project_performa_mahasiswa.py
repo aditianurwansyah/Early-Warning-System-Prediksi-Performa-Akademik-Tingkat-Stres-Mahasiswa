@@ -281,22 +281,40 @@ else:
                         st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, tingkatkan konsistensi belajar, dan jaga kesehatan fisik serta mental.")
                     
-                   # Visualisasi Confidence Score
+                   # Visualisasi Confidence Score menggunakan Plotly Express (Urutan Terkunci)
                     st.write("---")
                     st.write("**Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
                     
-                    # 1. Definisikan urutan yang diinginkan dari kiri ke kanan
-                    desired_order = ["Aman", "Risiko Sedang", "Berisiko Tinggi"]
+                    # Ambil nilai probabilitas dari model (misal berbentuk array [prob_aman, prob_tinggi, prob_sedang])
+                    prob_values = prediction_proba[0]
                     
-                    # 2. Buat DataFrame dari probabilitas model
-                    chart_data = pd.DataFrame(prediction_proba, columns=["Aman", "Berisiko Tinggi", "Risiko Sedang"]).T
-                    chart_data.columns = ["Probabilitas"]
+                    # Petakan nilai probabilitas ke kategori dengan urutan yang diinginkan:
+                    # Indeks [0] = Aman, Indeks [2] = Risiko Sedang, Indeks [1] = Berisiko Tinggi 
+                    # (Sesuaikan indeks jika urutan asli model Anda berbeda)
+                    chart_df = pd.DataFrame({
+                        'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
+                        'Probabilitas': [prob_values[0], prob_values[2], prob_values[1]]
+                    })
                     
-                    # 3. Terapkan reindex agar urutannya sesuai dengan desired_order
-                    chart_data = chart_data.reindex(desired_order)
+                    # Buat bar chart interaktif dengan Plotly
+                    fig_conf = px.bar(
+                        chart_df,
+                        x='Kategori Risiko',
+                        y='Probabilitas',
+                        color='Kategori Risiko',
+                        text='Probabilitas',
+                        template='plotly_dark',
+                        category_orders={'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"]} # Mengunci urutan mutlak
+                    )
                     
-                    # 4. Tampilkan grafik
-                    st.bar_chart(chart_data)
+                    fig_conf.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+                    fig_conf.update_layout(
+                        showlegend=False, 
+                        yaxis=dict(range=[0, 1.1]), 
+                        margin=dict(t=30, b=20, l=20, r=20)
+                    )
+                    
+                    st.plotly_chart(fig_conf, use_container_width=True)
                     
                 except Exception as e:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
