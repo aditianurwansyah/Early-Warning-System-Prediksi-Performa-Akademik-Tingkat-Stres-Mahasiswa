@@ -272,28 +272,33 @@ else:
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                    # ==========================================
-                    # PASTIKAN BAGIAN INI ADA (DEFINISI 'triggers')
-                    # ==========================================
+                    # Tentukan Teks Keterangan / Rekomendasi Berdasarkan Status Risiko
+                    if status_str == "Berisiko Tinggi":
+                        keterangan_tindakan = "Wajib segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif."
+                    elif status_str == "Risiko Sedang":
+                        keterangan_tindakan = "Disarankan melakukan konsultasi preventif ke BK untuk evaluasi manajemen waktu dan penyesuaian gaya hidup."
+                    else:
+                        keterangan_tindakan = "Pertahankan pola gaya hidup seimbang, jaga konsistensi belajar, dan pertahankan waktu istirahat."
+
+                    # Analisis Pemicu
                     triggers = []
                     if sleep_hour < 6.0:
-                        triggers.append(f" **Durasi Tidur Kurang:** Hanya {sleep_hour} jam/hari (di bawah standar sehat 7-8 jam).")
+                        triggers.append(f"Durasi Tidur Kurang ({sleep_hour} jam).")
                     if study_hour < 2.0:
-                        triggers.append(f" **Jam Belajar Rendah:** Hanya {study_hour} jam/hari, berisiko menurunkan pemahaman materi.")
+                        triggers.append(f"Jam Belajar Rendah ({study_hour} jam).")
                     elif study_hour > 10.0:
-                        triggers.append(f"**Beban Belajar Berlebih (Overload):** {study_hour} jam/hari berisiko memicu kelelahan mental (*burnout*).")
+                        triggers.append(f"Beban Belajar Berlebih ({study_hour} jam).")
                     if stress_level >= 4:
-                        triggers.append(f" **Tingkat Stres Tinggi:** Skor stres berada di angka {stress_level}/5.")
+                        triggers.append(f"Stres Tinggi.")
                     if GPA <= 2.50:
-                        triggers.append("**Indeks Prestasi (GPA):** Berada pada kategori rendah/perlu ditingkatkan.")
+                        triggers.append("GPA Rendah.")
                     if social_hour > 6.0:
-                        triggers.append(f"**Waktu Sosialisasi Tinggi:** {social_hour} jam/hari berpotensi menyita waktu produktif.")
+                        triggers.append(f"Sosialisasi Tinggi ({social_hour} jam).")
                     
                     if not triggers:
-                        triggers.append("Seluruh parameter gaya hidup berada dalam rentang yang seimbang dan sehat.")
-                    # ==========================================
+                        triggers.append("Gaya hidup seimbang.")
 
-                    # SIMPAN HASIL KE CSV
+                    # SIMPAN HASIL KE CSV (Termasuk kolom 'Keterangan')
                     result_record = {
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
@@ -308,7 +313,8 @@ else:
                         'Stress_Level': stress_level,
                         'Kategori_Masalah': kategori_masalah,
                         'Feedback': feedback_mhs if feedback_mhs else "-",
-                        'Prediction': status_str
+                        'Prediction': status_str,
+                        'Keterangan': keterangan_tindakan  # <--- Kolom Keterangan baru
                     }
                     csv_file = 'student_predictions.csv'
                     df_record = pd.DataFrame([result_record])
@@ -424,25 +430,25 @@ else:
 
     elif menu == "Monitoring Mahasiswa Berisiko":
         st.subheader(" Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
-        st.write("Berikut adalah rekapitulasi data mahasiswa yang telah mengisi *Formulir Evaluasi Gaya Hidup & Prediksi Risiko* beserta rincian departemen dan keluhan mereka:")
+        st.write("Berikut adalah rekapitulasi data mahasiswa beserta keterangan rekomendasi tindakan dan keluhan mereka:")
 
         csv_file = 'student_predictions.csv'
         df_submissions = pd.DataFrame()
         
-        # Kolom standar yang harus ada
+        # Daftar kolom lengkap termasuk 'Keterangan'
         default_columns = [
             'Nama_Mahasiswa', 'Username', 'Timestamp', 'Department', 'Study_Hours', 
             'Extracurricular_Hours', 'Sleep_Hours', 'Social_Hours', 
             'Physical_Activity', 'GPA', 'Stress_Level', 
-            'Kategori_Masalah', 'Feedback', 'Prediction'
+            'Kategori_Masalah', 'Feedback', 'Prediction', 'Keterangan'
         ]
 
         if os.path.exists(csv_file):
             try:
                 df_submissions = pd.read_csv(csv_file)
-                # Jika file CSV lama belum ada kolom 'Department', tambahkan secara otomatis agar tidak error
-                if 'Department' not in df_submissions.columns:
-                    df_submissions['Department'] = 'Umum / Belum Tercatat'
+                # Jika file CSV lama belum memiliki kolom Keterangan, tambahkan secara otomatis
+                if 'Keterangan' not in df_submissions.columns:
+                    df_submissions['Keterangan'] = 'Evaluasi rutin'
             except Exception:
                 os.remove(csv_file)
                 df_submissions = pd.DataFrame(columns=default_columns)
@@ -450,32 +456,27 @@ else:
             df_submissions = pd.DataFrame(columns=default_columns)
 
         if not df_submissions.empty:
-            # Filter berdasarkan status risiko
             risk_filter = st.selectbox("Filter Berdasarkan Status Risiko:", ["Semua Data", "Berisiko Tinggi", "Risiko Sedang", "Aman"])
             if risk_filter != "Semua Data" and 'Prediction' in df_submissions.columns:
                 df_filtered = df_submissions[df_submissions['Prediction'] == risk_filter].copy()
             else:
                 df_filtered = df_submissions.copy()
 
-            # ==========================================
-            # PEMETAAN ANGKA STRESS LEVEL MENJADI TEKS DESKRIPTIF
-            # ==========================================
+            # Pemetaan tingkat stres agar tampil deskriptif
             stress_mapping = {
-                1: "Sangat Rendah",
-                2: "Rendah",
-                3: "Sedang",
-                4: "Tinggi",
-                5: "Sangat Tinggi"
+                1: "1 - Sangat Rendah",
+                2: "2 - Rendah",
+                3: "3 - Sedang",
+                4: "4 - Tinggi",
+                5: "5 - Sangat Tinggi"
             }
             if 'Stress_Level' in df_filtered.columns:
-                # Mengubah angka menjadi teks berdasarkan kamus stress_mapping
                 df_filtered['Stress_Level'] = df_filtered['Stress_Level'].map(stress_mapping).fillna(df_filtered['Stress_Level'])
-            # ==========================================
 
-            # Menampilkan tabel interaktif yang sudah diperjelas
+            # Menampilkan tabel lengkap dengan kolom Keterangan
             st.dataframe(df_filtered, use_container_width=True)
-            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter berdasarkan departemen dan memprioritaskan bimbingan bagi mahasiswa berstatus **Berisiko Tinggi**.")
-            
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat melihat rekomendasi tindakan langsung pada kolom **Keterangan**.")
+
             # FITUR HAPUS MULTI-DATA
             st.markdown("---")
             st.subheader("Manajemen Hapus Data Rekaman")
