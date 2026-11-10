@@ -272,9 +272,28 @@ else:
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                  
+                    # ==========================================
+                    # PASTIKAN BAGIAN INI ADA (DEFINISI 'triggers')
+                    # ==========================================
+                    triggers = []
+                    if sleep_hour < 6.0:
+                        triggers.append(f" **Durasi Tidur Kurang:** Hanya {sleep_hour} jam/hari (di bawah standar sehat 7-8 jam).")
+                    if study_hour < 2.0:
+                        triggers.append(f" **Jam Belajar Rendah:** Hanya {study_hour} jam/hari, berisiko menurunkan pemahaman materi.")
+                    elif study_hour > 10.0:
+                        triggers.append(f"**Beban Belajar Berlebih (Overload):** {study_hour} jam/hari berisiko memicu kelelahan mental (*burnout*).")
+                    if stress_level >= 4:
+                        triggers.append(f" **Tingkat Stres Tinggi:** Skor stres berada di angka {stress_level}/5.")
+                    if GPA <= 2.50:
+                        triggers.append("**Indeks Prestasi (GPA):** Berada pada kategori rendah/perlu ditingkatkan.")
+                    if social_hour > 6.0:
+                        triggers.append(f"**Waktu Sosialisasi Tinggi:** {social_hour} jam/hari berpotensi menyita waktu produktif.")
+                    
+                    if not triggers:
+                        triggers.append("Seluruh parameter gaya hidup berada dalam rentang yang seimbang dan sehat.")
+                    # ==========================================
 
-                    # SIMPAN HASIL KE CSV (Sertakan kolom 'Department')
+                    # SIMPAN HASIL KE CSV
                     result_record = {
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
@@ -302,18 +321,18 @@ else:
                     st.subheader("Hasil Analisis Sistem & Rekomendasi:")
                     
                     if status_str == "Berisiko Tinggi":
-                        st.error(" **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Krisis Akademik)**")
+                        st.error("**Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Krisis Akademik)**")
                         st.warning("**Rekomendasi Tindakan:** Mahasiswa **wajib** segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif dan pencegahan penurunan performa yang lebih parah.")
                     elif status_str == "Risiko Sedang":
                         st.warning("**Status: RISIKO SEDANG (Perlu Perhatian & Penyesuaian Gaya Hidup)**")
                         st.info("**Rekomendasi Tindakan:** Mahasiswa disarankan melakukan konsultasi preventif ke BK untuk evaluasi manajemen waktu, pengaturan jam tidur, serta strategi mengatasi stres sebelum meningkat ke tahap krisis.")
                     else:
-                        st.success(" **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
+                        st.success("**Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info("**Rekomendasi Tindakan:** Pertahankan pola gaya hidup seimbang, jaga konsistensi belajar, dan pertahankan waktu istirahat yang cukup.")
                     
                     # TAMPILKAN ANALISIS PEMICU
                     st.write("---")
-                    st.write("**Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
+                    st.write("🔍 **Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
                     for trig in triggers:
                         st.markdown(f"- {trig}")
 
