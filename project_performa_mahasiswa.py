@@ -54,7 +54,7 @@ if 'nama_lengkap' not in st.session_state:
 # FORM LOGIN & REGISTRASI
 # -----------------------------------------------------------------------------
 def auth_system():
-    st.markdown("<h2 style='text-align: center;'> Sistem Keamanan Early Warning System</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'> Sistem monitoring dan prediksi performa akademik mahasiswa</h2>", unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["Masuk (Login)", "Daftar Akun Baru (Mahasiswa)"])
     
