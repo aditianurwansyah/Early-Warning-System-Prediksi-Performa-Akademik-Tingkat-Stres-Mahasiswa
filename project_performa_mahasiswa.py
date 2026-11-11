@@ -46,7 +46,8 @@ def load_user_db():
         df_default = pd.DataFrame([
             {"nama": "Administrator", "username": "admin", "password": make_hash("admin123"), "role": "Administrator"},
             {"nama": "Tim BK", "username": "bk", "password": make_hash("bk123"), "role": "Bimbingan Konseling"},
-            {"nama": "Zahra Mahasiswa", "username": "zahra", "password": make_hash("zahra123"), "role": "Mahasiswa"}
+            {"nama": "Zahra", "username": "zahra", "password": make_hash("zahra123"), "role": "Mahasiswa"}, 
+            {"nama": "An", "username: "an", "password": make_hash("an123"), "role": "Mahasiswa"} 
         ])
         df_default.to_csv(USER_DB, index=False)
         return df_default
