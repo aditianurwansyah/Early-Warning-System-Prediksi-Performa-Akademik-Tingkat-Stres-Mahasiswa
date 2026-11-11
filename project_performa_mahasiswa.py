@@ -4,9 +4,11 @@ import numpy as np
 import joblib
 import plotly.express as px
 import os
+import io
 from datetime import datetime
 import hashlib
-from fpdf import FPDF
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 # ==========================================
 # 1. KONFIGURASI HALAMAN STREAMLIT
@@ -49,7 +51,7 @@ def load_user_db():
         df_default.to_csv(USER_DB, index=False)
         return df_default
 
-# Fungsi Pemetaan Kategori GPA
+# Fungsi Pemetaan Kategori GPA Berjenjang
 def map_gpa_category(val):
     if pd.isna(val):
         return "-"
@@ -69,101 +71,49 @@ def map_gpa_category(val):
         return str(val)
 
 # ==========================================
-# 2. FUNGSI GENERATE LAPORAN PDF (KOLOM USER & AKTIVITAS DIPERLEBAR)
+# 2. FUNGSI GENERATE LAPORAN EXCEL / SPREADSHEET (.xlsx)
 # ==========================================
-def generate_pdf_report(df):
-    pdf = FPDF(orientation='L', unit='mm', format='A4')
-    pdf.set_auto_page_break(auto=True, margin=10)
-    pdf.add_page(orientation='L')
-    
-    # Header Laporan
-    pdf.set_font("Helvetica", 'B', 14)
-    pdf.cell(0, 7, "LAPORAN REKAPITULASI MONITORING BIMBINGAN KONSELING (EWS)", ln=True, align='C')
-    pdf.set_font("Helvetica", '', 9)
-    pdf.cell(0, 5, f"Tanggal Cetak: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')} WIB | Early Warning System Mahasiswa", ln=True, align='C')
-    pdf.ln(4)
-    
-    # Header Tabel (Total Lebar pas 277 mm untuk A4 Landscape)
-    pdf.set_font("Helvetica", 'B', 7)
-    pdf.set_fill_color(230, 230, 230)
-    
-    col_widths = {
-        'Nama': 20, 'User': 16, 'Waktu': 24, 'Dept': 18, 
-        'Study': 9, 'Eskul': 9, 'Tidur': 9, 'Sosial': 9, 'Fisik': 9, 
-        'GPA': 24, 'Stres': 15, 'Masalah': 14, 'Feedback': 24, 
-        'Status': 18, 'Keterangan': 41
-    }
-    
-    pdf.cell(col_widths['Nama'], 6, "Nama Mahasiswa", border=1, fill=True)
-    pdf.cell(col_widths['User'], 6, "Username", border=1, fill=True)
-    pdf.cell(col_widths['Waktu'], 6, "Timestamp", border=1, fill=True)
-    pdf.cell(col_widths['Dept'], 6, "Departemen", border=1, fill=True)
-    pdf.cell(col_widths['Study'], 6, "Study", border=1, fill=True, align='C')
-    pdf.cell(col_widths['Eskul'], 6, "Eskul", border=1, fill=True, align='C')
-    pdf.cell(col_widths['Tidur'], 6, "Tidur", border=1, fill=True, align='C')
-    pdf.cell(col_widths['Sosial'], 6, "Sosial", border=1, fill=True, align='C')
-    pdf.cell(col_widths['Fisik'], 6, "Fisik", border=1, fill=True, align='C')
-    pdf.cell(col_widths['GPA'], 6, "GPA (Kategori)", border=1, fill=True, align='C')
-    pdf.cell(col_widths['Stres'], 6, "Tingkat Stres", border=1, fill=True)
-    pdf.cell(col_widths['Masalah'], 6, "Kategori", border=1, fill=True)
-    pdf.cell(col_widths['Feedback'], 6, "Feedback Mhs", border=1, fill=True)
-    pdf.cell(col_widths['Status'], 6, "Status Risiko", border=1, fill=True)
-    pdf.cell(col_widths['Keterangan'], 6, "Rekomendasi Tindakan BK", border=1, fill=True, ln=True)
-    
-    # Isi Baris Tabel
-    pdf.set_font("Helvetica", '', 6.5)
-    
-    stress_mapping = {
-        1: "1 - Sangat Rendah",
-        2: "2 - Rendah",
-        3: "3 - Sedang",
-        4: "4 - Tinggi",
-        5: "5 - Sangat Tinggi"
-    }
-    
-    for _, row in df.iterrows():
-        nama = str(row.get('Nama_Mahasiswa', '-'))[:22]
-        user = str(row.get('Username', '-'))[:15]
-        waktu = str(row.get('Timestamp', '-'))[:19]
-        dept = str(row.get('Department', '-'))[:16]
+def generate_excel_report(df):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Monitoring_BK')
+        workbook = writer.book
+        worksheet = writer.sheets['Monitoring_BK']
         
-        study = str(row.get('Study_Hours', 0))
-        eskul = str(row.get('Extracurricular_Hours', 0))
-        tidur = str(row.get('Sleep_Hours', 0))
-        sosial = str(row.get('Social_Hours', 0))
-        fisik = str(row.get('Physical_Activity', 0))
+        # Desain Header Profesional
+        header_fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+        header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        thin_border = Border(
+            left=Side(style='thin', color='D3D3D3'),
+            right=Side(style='thin', color='D3D3D3'),
+            top=Side(style='thin', color='D3D3D3'),
+            bottom=Side(style='thin', color='D3D3D3')
+        )
         
-        gpa_text = map_gpa_category(row.get('GPA', 0))[:28]
-        
-        raw_stres = row.get('Stress_Level', 3)
-        if isinstance(raw_stres, (int, float)):
-            stres = stress_mapping.get(int(raw_stres), str(raw_stres))
-        else:
-            stres = str(raw_stres)
-        stres = stres[:16]
-        
-        masalah = str(row.get('Kategori_Masalah', '-'))[:12]
-        feedback = str(row.get('Feedback', '-'))[:32]
-        status = str(row.get('Prediction', '-'))[:14]
-        keterangan = str(row.get('Keterangan', '-'))[:60]
-        
-        pdf.cell(col_widths['Nama'], 6, nama, border=1)
-        pdf.cell(col_widths['User'], 6, user, border=1)
-        pdf.cell(col_widths['Waktu'], 6, waktu, border=1)
-        pdf.cell(col_widths['Dept'], 6, dept, border=1)
-        pdf.cell(col_widths['Study'], 6, study, border=1, align='C')
-        pdf.cell(col_widths['Eskul'], 6, eskul, border=1, align='C')
-        pdf.cell(col_widths['Tidur'], 6, tidur, border=1, align='C')
-        pdf.cell(col_widths['Sosial'], 6, sosial, border=1, align='C')
-        pdf.cell(col_widths['Fisik'], 6, fisik, border=1, align='C')
-        pdf.cell(col_widths['GPA'], 6, gpa_text, border=1, align='C')
-        pdf.cell(col_widths['Stres'], 6, stres, border=1)
-        pdf.cell(col_widths['Masalah'], 6, masalah, border=1)
-        pdf.cell(col_widths['Feedback'], 6, feedback, border=1)
-        pdf.cell(col_widths['Status'], 6, status, border=1)
-        pdf.cell(col_widths['Keterangan'], 6, keterangan, border=1, ln=True)
-        
-    return pdf.output()
+        for col in worksheet.iter_cols(min_row=1, max_row=1):
+            for cell in col:
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                cell.border = thin_border
+                
+        # Format Baris Data & Wrap Text
+        for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, min_col=1, max_col=worksheet.max_column):
+            for cell in row:
+                cell.border = thin_border
+                cell.alignment = Alignment(vertical="center", wrap_text=True)
+                
+        # Otomatis Lebar Kolom Menyesuaikan Konten
+        for col in worksheet.columns:
+            max_len = 0
+            col_letter = get_column_letter(col[0].column)
+            for cell in col:
+                val_str = str(cell.value or '')
+                if len(val_str) > max_len:
+                    max_len = len(val_str)
+            worksheet.column_dimensions[col_letter].width = max(max_len + 4, 16)
+            
+    return output.getvalue()
 
 # ==========================================
 # 3. AUTENTIKASI (LOGIN & REGISTRASI)
@@ -261,7 +211,7 @@ else:
         
         st.info("💡 **Panduan Penggunaan Sistem:**\n"
                 "- **Mahasiswa:** Gunakan menu *Prediksi Mandiri Mahasiswa* untuk melakukan evaluasi mandiri dan mengirimkan konsultasi ke BK.\n"
-                "- **Tim BK / Admin:** Gunakan menu *Monitoring Mahasiswa Berisiko* untuk merekap data, melihat detail rekomendasi, membaca keluhan, serta mengunduh laporan PDF resmi.")
+                "- **Tim BK / Admin:** Gunakan menu *Monitoring Mahasiswa Berisiko* untuk merekap data, melihat detail rekomendasi, membaca keluhan, serta mengunduh laporan Spreadsheet/Excel resmi.")
 
     # ==========================================
     # MENU 2: PREDIKSI MANDIRI MAHASISWA
@@ -515,23 +465,23 @@ else:
                 }
             )
             
-            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter status risiko dan mengunduh laporan PDF resmi di bawah ini.")
+            st.info(f"Total data terekam: {len(df_submissions)} mahasiswa. Tim BK dapat memfilter status risiko dan mengunduh laporan Spreadsheet/Excel resmi di bawah ini.")
 
-            # FITUR UNDUH LAPORAN PDF
+            # FITUR UNDUH LAPORAN EXCEL / SPREADSHEET
             st.markdown("---")
-            st.subheader("📥 Unduh Laporan Rekapitulasi (PDF Resmi)")
+            st.subheader("📥 Unduh Laporan Rekapitulasi (Spreadsheet / Excel)")
             
             try:
-                pdf_data = generate_pdf_report(df_filtered)
+                excel_data = generate_excel_report(df_filtered)
                 st.download_button(
-                    label="📄 Unduh Laporan Rekapitulasi BK (Format PDF)",
-                    data=bytes(pdf_data),
-                    file_name=f"Laporan_Monitoring_BK_{datetime.now().strftime('%Y-%m-%d')}.pdf",
-                    mime="application/pdf",
-                    help="Klik untuk mengunduh laporan PDF rapi berformat A4 Landscape untuk arsip BK atau lampiran skripsi."
+                    label="📊 Unduh Laporan Monitoring (.xlsx / Spreadsheet)",
+                    data=excel_data,
+                    file_name=f"Laporan_Monitoring_BK_{datetime.now().strftime('%Y-%m-%d')}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    help="Klik untuk mengunduh berkas Spreadsheet rapi yang siap dibuka atau diunggah ke Google Sheets."
                 )
             except Exception as e:
-                st.error(f"Gagal memproses file PDF: {e}. Pastikan modul 'fpdf2' sudah terinstall.")
+                st.error(f"Gagal memproses berkas Spreadsheet: {e}. Pastikan modul 'openpyxl' sudah terinstall.")
 
             # MANAJEMEN HAPUS MULTI-DATA
             st.markdown("---")
@@ -609,4 +559,4 @@ else:
     elif menu == "Tentang Dataset & Fitur":
         st.subheader("ℹ️ Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen wawancara Bimbingan Konseling berbasis *Machine Learning*.")
-        st.markdown("- **Model:** Random Forest Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC\n- **Fitur Utama:** Prediksi Mandiri, Analisis Pemicu Otomatis, Monitoring BK, Rekomendasi Tindakan, dan Ekspor Laporan PDF.")
+        st.markdown("- **Model:** Random Forest Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC\n- **Fitur Utama:** Prediksi Mandiri, Analisis Pemicu Otomatis, Monitoring BK, Rekomendasi Tindakan, dan Ekspor Laporan Spreadsheet/Excel.")
