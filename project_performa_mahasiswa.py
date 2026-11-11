@@ -15,7 +15,7 @@ from openpyxl.utils import get_column_letter
 # ==========================================
 st.set_page_config(
     page_title="Early Warning System - Performa Mahasiswa",
-    page_icon="campus.png",
+    page_icon="🎓",
     layout="wide"
 )
 
@@ -46,7 +46,7 @@ def load_user_db():
         df_default = pd.DataFrame([
             {"nama": "Administrator", "username": "admin", "password": make_hash("admin123"), "role": "Administrator"},
             {"nama": "Tim BK", "username": "bk", "password": make_hash("bk123"), "role": "Bimbingan Konseling"},
-            {"nama": "Zahra", "username": "zahra", "password": make_hash("zahra123"), "role": "Mahasiswa"}
+            {"nama": "Zahra Mahasiswa", "username": "zahra", "password": make_hash("zahra123"), "role": "Mahasiswa"}
         ])
         df_default.to_csv(USER_DB, index=False)
         return df_default
@@ -119,10 +119,10 @@ def generate_excel_report(df):
 # 3. AUTENTIKASI (LOGIN & REGISTRASI)
 # ==========================================
 if not st.session_state.logged_in:
-    st.title("Early Warning System (EWS) - Performa & Risiko Akademik Mahasiswa")
+    st.title("🎓 Early Warning System (EWS) - Performa & Risiko Akademik")
     st.markdown("---")
     
-    tab_login, tab_register = st.tabs(["Masuk (Login)", "Registrasi Akun Mahasiswa"])
+    tab_login, tab_register = st.tabs(["🔐 Masuk (Login)", "📝 Registrasi Akun Mahasiswa"])
     
     with tab_login:
         st.subheader("Silakan Masuk ke Akun Anda")
@@ -172,15 +172,12 @@ if not st.session_state.logged_in:
                 st.warning("Mohon lengkapi seluruh kolom pendaftaran.")
 
 else:
-    # Navigasi Sidebar (RBAC)
+    # Navigasi Sidebar (RBAC) & Pemilihan Model khusus Mahasiswa
     st.sidebar.title(f"Halo, {st.session_state.nama_lengkap}")
     st.sidebar.caption(f"Peran: **{st.session_state.user_role}**")
     st.sidebar.markdown("---")
 
-    # Inisialisasi default model
     selected_model_name = "Random Forest (RF)"
-
-    # PILIHAN MODEL ML HANYA MUNCUL KHUSUS UNTUK MAHASISWA
     if st.session_state.user_role == "Mahasiswa":
         selected_model_name = st.sidebar.selectbox(
             "Pilih Model Machine Learning", 
@@ -188,7 +185,6 @@ else:
         )
         st.sidebar.markdown("---")
 
-    # MENU UTAMA BERDASARKAN ROLE
     if st.session_state.user_role == "Mahasiswa":
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data"])
     elif st.session_state.user_role == "Bimbingan Konseling":
@@ -197,7 +193,7 @@ else:
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
     st.sidebar.markdown("---")
-    if st.sidebar.button("Keluar (Logout)"):
+    if st.sidebar.button("🚪 Keluar (Logout)"):
         st.session_state.logged_in = False
         st.session_state.username = ""
         st.session_state.nama_lengkap = ""
@@ -222,10 +218,10 @@ else:
     # MENU 1: BERANDA
     # ==========================================
     if menu == "Beranda":
-        st.subheader("Selamat Datang di Dashboard Early Warning System (EWS)")
+        st.subheader("🎓 Selamat Datang di Dashboard Early Warning System (EWS)")
         st.write("Purwarupa sistem berbasis *Machine Learning* untuk memantau performa akademik dan tingkat risiko mahasiswa.")
         
-        st.info("**Panduan Penggunaan Sistem:**\n"
+        st.info("💡 **Panduan Penggunaan Sistem:**\n"
                 "- **Mahasiswa:** Gunakan menu *Prediksi Mandiri Mahasiswa* untuk melakukan evaluasi mandiri dan mengirimkan konsultasi ke BK.\n"
                 "- **Tim BK / Admin:** Gunakan menu *Monitoring Mahasiswa Berisiko* untuk merekap data, melihat detail rekomendasi, membaca keluhan, serta mengunduh laporan Spreadsheet/Excel resmi.")
 
@@ -233,35 +229,37 @@ else:
     # MENU 2: PREDIKSI MANDIRI MAHASISWA
     # ==========================================
     elif menu == "Prediksi Mandiri Mahasiswa":
-        st.subheader(f"Formulir Evaluasi Gaya Hidup & Prediksi Risiko ({selected_model_name})")
+        st.subheader(f"📋 Formulir Evaluasi Gaya Hidup & Prediksi Risiko ({selected_model_name})")
         st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan masukkan parameter gaya hidup dan keluhan Anda di bawah ini:")
+
         # PANDUAN BATAS AMAN, SEDANG, & TIDAK AMAN (EXPANDER)
-        with st.expander("Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)"):
+        with st.expander("📖 Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)"):
             st.markdown("""
             Berikut adalah standar acuan parameter gaya hidup dan akademik dalam sistem EWS:
-            * **Jam Tidur (*Sleep Hours*):**
-              * **Aman:** 7 – 9 jam / hari
-              * **Sedang:** 6 – 6.9 jam / hari
-              * **Tidak Aman:** < 6 jam / hari (Risiko kelelahan tinggi)
-            * **Jam Belajar (*Study Hours*):**
-              * **Aman:** 3 – 8 jam / hari
-              * **Sedang:** 2 – 2.9 jam atau 8.1 – 10 jam / hari
-              * **Tidak Aman:** < 2 jam atau > 10 jam / hari (Potensi *burnout*)
-            * **Tingkat Stres (*Stress Level*):**
-              * **Aman:** Skor 1 – 2 (Rendah)
-              * **Sedang:** Skor 3 (Sedang)
-              * **Tidak Aman:** Skor 4 – 5 (Tinggi / Krisis)
-            * **Indeks Prestasi (GPA):**
-              * **Aman:** 3.01 – 4.00 (Tinggi)
-              * **Sedang:** 2.76 – 3.00 (Cukup)
-              * **Tidak Aman:** < 2.76 (Rendah / Risiko akademik)
-            * **Jam Sosialisasi & Aktivitas Fisik:**
-              * **Aman:** Sosialisasi 1–4 jam & Fisik 1–2 jam
-              * **Sedang:** Sosialisasi 5–6 jam & Fisik 0.5–0.9 jam
-              * **Tidak Aman:** Fisik 0 jam atau Sosialisasi > 6 jam (Distraksi waktu)
+            * **⏱️ Jam Tidur (*Sleep Hours*):**
+              * 🟢 **Aman:** 7 – 9 jam / hari
+              * 🟡 **Sedang:** 6 – 6.9 jam / hari
+              * 🔴 **Tidak Aman:** < 6 jam / hari (Risiko kelelahan tinggi)
+            * **📚 Jam Belajar (*Study Hours*):**
+              * 🟢 **Aman:** 3 – 8 jam / hari
+              * 🟡 **Sedang:** 2 – 2.9 jam atau 8.1 – 10 jam / hari
+              * 🔴 **Tidak Aman:** < 2 jam atau > 10 jam / hari (Potensi *burnout*)
+            * **🧠 Tingkat Stres (*Stress Level*):**
+              * 🟢 **Aman:** Skor 1 – 2 (Rendah)
+              * 🟡 **Sedang:** Skor 3 (Sedang)
+              * 🔴 **Tidak Aman:** Skor 4 – 5 (Tinggi / Krisis)
+            * **📉 Indeks Prestasi (GPA):**
+              * 🟢 **Aman:** 3.01 – 4.00 (Tinggi)
+              * 🟡 **Sedang:** 2.76 – 3.00 (Cukup)
+              * 🔴 **Tidak Aman:** < 2.76 (Rendah / Risiko akademik)
+            * **🎉 Jam Sosialisasi & Aktivitas Fisik:**
+              * 🟢 **Aman:** Sosialisasi 1–4 jam & Fisik 1–2 jam
+              * 🟡 **Sedang:** Sosialisasi 5–6 jam & Fisik 0.5–0.9 jam
+              * 🔴 **Tidak Aman:** Fisik 0 jam atau Sosialisasi > 6 jam (Distraksi waktu)
             """)
+
         if model is None:
-            st.warning(f"File model machine learning untuk **{selected_model_name}** belum ditemukan di direktori Anda (pastikan file `.pkl` tersedia).")
+            st.warning(f"⚠️ File model machine learning untuk **{selected_model_name}** belum ditemukan di direktori Anda (pastikan file `.pkl` tersedia).")
         else:
             col1, col2 = st.columns(2)
             
@@ -343,6 +341,15 @@ else:
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
+                    # ----------------------------------------------------
+                    # SISTEM HIBRIDA (RULE OVERRIDE UNTUK KASUS EKSTREM)
+                    # ----------------------------------------------------
+                    if stress_level == 5 and sleep_hour < 4.0:
+                        status_str = "Berisiko Tinggi"
+                    elif stress_level >= 4 or sleep_hour < 6.0 or GPA < 2.76:
+                        if status_str == "Aman":
+                            status_str = "Risiko Sedang"
+
                     if status_str == "Berisiko Tinggi":
                         keterangan_tindakan = "Wajib segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif."
                     elif status_str == "Risiko Sedang":
@@ -352,22 +359,22 @@ else:
 
                     triggers = []
                     if sleep_hour < 6.0:
-                        triggers.append(f"**Durasi Tidur Kurang:** Hanya {sleep_hour} jam/hari.")
+                        triggers.append(f"⏱️ **Durasi Tidur Kurang (Tidak Aman):** Hanya {sleep_hour} jam/hari.")
                     if study_hour < 2.0:
-                        triggers.append(f"**Jam Belajar Rendah:** Hanya {study_hour} jam/hari.")
+                        triggers.append(f"📚 **Jam Belajar Rendah (Tidak Aman):** Hanya {study_hour} jam/hari.")
                     elif study_hour > 10.0:
-                        triggers.append(f"**Beban Belajar Berlebih:** {study_hour} jam/hari.")
+                        triggers.append(f"⚠️ **Beban Belajar Berlebih (Tidak Aman):** {study_hour} jam/hari.")
                     if stress_level >= 4:
-                        triggers.append(f" **Tingkat Stres Tinggi:** Skor stres berada di angka {stress_level}.")
+                        triggers.append(f"🧠 **Tingkat Stres Tinggi (Tidak Aman):** Skor stres berada di angka {stress_level}/5.")
                     if GPA <= 2.50:
-                        triggers.append(f"**Indeks Prestasi (GPA):** Berada pada kategori rendah (< 2.50).")
+                        triggers.append(f"📉 **Indeks Prestasi / GPA (Tidak Aman):** Berada pada kategori rendah (< 2.50).")
                     if social_hour > 6.0:
-                        triggers.append(f"**Waktu Sosialisasi Tinggi:** {social_hour} jam/hari.")
+                        triggers.append(f"🎉 **Waktu Sosialisasi Tinggi (Tidak Aman):** {social_hour} jam/hari.")
                     
                     if not triggers:
-                        triggers.append("Seluruh parameter gaya hidup berada dalam tidak diketahui.")
+                        triggers.append("✨ Seluruh parameter gaya hidup berada dalam rentang aman dan seimbang.")
 
-                    # SIMPAN HASIL KE CSV DENGAN VALIDASI HEADER LENGKAP
+                    # SIMPAN HASIL KE CSV DENGAN VALIDASI HEADER
                     result_record = {
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
@@ -398,25 +405,59 @@ else:
                             df_record.to_csv(csv_file, mode='a', header=False, index=False)
 
                     st.markdown("---")
-                    st.subheader("Hasil Analisis Sistem & Rekomendasi:")
+                    st.subheader("📌 Hasil Analisis Sistem & Rekomendasi:")
                     
                     if status_str == "Berisiko Tinggi":
-                        st.error("**Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Krisis Akademik)**")
+                        st.error("🚨 **Status: BERISIKO TINGGI (Potensi Keterlambatan Studi / Krisis Akademik)**")
                         st.warning(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
                     elif status_str == "Risiko Sedang":
-                        st.warning("**Status: RISIKO SEDANG (Perlu Perhatian & Penyesuaian Gaya Hidup)**")
+                        st.warning("⚠️ **Status: RISIKO SEDANG (Perlu Perhatian & Penyesuaian Gaya Hidup)**")
                         st.info(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
                     else:
-                        st.success("**Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
+                        st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
+
+                    # ----------------------------------------------------
+                    # TABEL EVALUASI BATAS PARAMETER (MUNCUL SETELAH ANALISIS)
+                    # ----------------------------------------------------
+                    st.markdown("---")
+                    st.write("📊 **Evaluasi Status Batas Parameter Anda:**")
+                    
+                    param_evals = []
+                    # Sleep
+                    s_stat, s_ico = ("Aman", "🟢") if sleep_hour >= 7.0 else ("Sedang", "🟡") if sleep_hour >= 6.0 else ("Tidak Aman", "🔴")
+                    param_evals.append({"Parameter": "Jam Tidur", "Nilai Anda": f"{sleep_hour} jam/hari", "Status": f"{s_ico} {s_stat}", "Standar Acuan": "7 - 9 jam"})
+                    
+                    # Study
+                    st_stat, st_ico = ("Aman", "🟢") if (3.0 <= study_hour <= 8.0) else ("Sedang", "🟡") if ((2.0 <= study_hour < 3.0) or (8.1 <= study_hour <= 10.0)) else ("Tidak Aman", "🔴")
+                    param_evals.append({"Parameter": "Jam Belajar", "Nilai Anda": f"{study_hour} jam/hari", "Status": f"{st_ico} {st_stat}", "Standar Acuan": "3 - 8 jam"})
+                    
+                    # Stress
+                    str_stat, str_ico = ("Aman", "🟢") if stress_level <= 2 else ("Sedang", "🟡") if stress_level == 3 else ("Tidak Aman", "🔴")
+                    param_evals.append({"Parameter": "Tingkat Stres", "Nilai Anda": f"Skor {stress_level}/5", "Status": f"{str_ico} {str_stat}", "Standar Acuan": "Skor 1 - 2"})
+                    
+                    # GPA
+                    g_stat, g_ico = ("Aman", "🟢") if GPA >= 3.01 else ("Sedang", "🟡") if GPA >= 2.76 else ("Tidak Aman", "🔴")
+                    param_evals.append({"Parameter": "Indeks Prestasi (GPA)", "Nilai Anda": f"{GPA}", "Status": f"{g_ico} {g_stat}", "Standar Acuan": "3.01 - 4.00"})
+                    
+                    # Social
+                    soc_stat, soc_ico = ("Aman", "🟢") if social_hour <= 4.0 else ("Sedang", "🟡") if social_hour <= 6.0 else ("Tidak Aman", "🔴")
+                    param_evals.append({"Parameter": "Jam Sosialisasi", "Nilai Anda": f"{social_hour} jam/hari", "Status": f"{soc_ico} {soc_stat}", "Standar Acuan": "1 - 4 jam"})
+                    
+                    # Physical
+                    pa_stat, pa_ico = ("Aman", "🟢") if physical_activity >= 1.0 else ("Sedang", "🟡") if physical_activity >= 0.5 else ("Tidak Aman", "🔴")
+                    param_evals.append({"Parameter": "Aktivitas Fisik", "Nilai Anda": f"{physical_activity} jam/hari", "Status": f"{pa_ico} {pa_stat}", "Standar Acuan": "1 - 2 jam"})
+
+                    df_eval_table = pd.DataFrame(param_evals)
+                    st.dataframe(df_eval_table, use_container_width=True, hide_index=True)
                     
                     st.write("---")
-                    st.write("**Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
+                    st.write("🔍 **Penjelasan Faktor Pemicu Utama (Analisis Sistem):**")
                     for trig in triggers:
                         st.markdown(f"- {trig}")
 
                     st.write("---")
-                    st.write("**Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                    st.write("📊 **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
                     
                     prob_values = prediction_proba[0]
                     if len(prob_values) >= 3:
@@ -451,7 +492,7 @@ else:
     # MENU 3: MONITORING MAHASISWA BERISIKO (BK / ADMIN)
     # ==========================================
     elif menu == "Monitoring Mahasiswa Berisiko":
-        st.subheader("Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
+        st.subheader("📊 Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
         st.write("Berikut adalah rekapitulasi data mahasiswa beserta rincian departemen, keluhan, dan rekomendasi tindakan:")
 
         csv_file = 'student_predictions.csv'
@@ -514,12 +555,12 @@ else:
 
             # FITUR UNDUH LAPORAN EXCEL / SPREADSHEET
             st.markdown("---")
-            st.subheader("Unduh Laporan Rekapitulasi (Spreadsheet / Excel)")
+            st.subheader("📥 Unduh Laporan Rekapitulasi (Spreadsheet / Excel)")
             
             try:
                 excel_data = generate_excel_report(df_filtered)
                 st.download_button(
-                    label="Unduh Laporan Monitoring (.xlsx / Spreadsheet)",
+                    label="📊 Unduh Laporan Monitoring (.xlsx / Spreadsheet)",
                     data=excel_data,
                     file_name=f"Laporan_Monitoring_BK_{datetime.now().strftime('%Y-%m-%d')}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -530,7 +571,7 @@ else:
 
             # MANAJEMEN HAPUS MULTI-DATA
             st.markdown("---")
-            st.subheader("Manajemen Hapus Data Rekaman")
+            st.subheader("🗑️ Manajemen Hapus Data Rekaman")
             
             row_labels = []
             for i, row in df_submissions.iterrows():
@@ -580,7 +621,7 @@ else:
     # MENU 4: VISUALISASI & ANALISIS DATA
     # ==========================================
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader("Visualisasi & Analisis Data Keseluruhan")
+        st.subheader("📈 Visualisasi & Analisis Data Keseluruhan")
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
             df_all = pd.read_csv(csv_file)
@@ -602,6 +643,6 @@ else:
     # MENU 5: TENTANG DATASET & FITUR
     # ==========================================
     elif menu == "Tentang Dataset & Fitur":
-        st.subheader("Tentang Sistem EWS Akademik")
+        st.subheader("ℹ️ Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen wawancara Bimbingan Konseling berbasis *Machine Learning*.")
-        st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC\n- **Fitur Utama:** Pilihan Model ML, Prediksi Mandiri, Analisis Pemicu Otomatis, Monitoring BK, Rekomendasi Tindakan, dan Ekspor Laporan Spreadsheet/Excel.")
+        st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC\n- **Fitur Utama:** Tabel Evaluasi Parameter, Sistem Hibrida, Pilihan Model ML, Prediksi Mandiri, Analisis Pemicu Otomatis, Monitoring BK, dan Ekspor Laporan Spreadsheet/Excel.")
