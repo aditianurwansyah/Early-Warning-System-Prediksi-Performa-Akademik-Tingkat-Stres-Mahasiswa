@@ -307,10 +307,10 @@ else:
             with col_fb1:
                 departemen = st.selectbox(
                     "Departemen / Program Studi", 
-                    ["Teknik Informatika", "Sistem Informasi", "Teknik Industri", "Manajemen", "Akuntansi", "Ilmu Komunikasi", "Lainnya"]
+                    ["Teknik Informatika", "Sistem Informasi", "Teknik Industri", "Manajemen Retail", "Desain Komunikasi Visual", "Bisnis Digital"]
                 )
             with col_fb2:
-                kategori_masalah = st.selectbox("Kategori Masalah Utama", ["Akademik", "Non Akademik"])
+                kategori_masalah = st.selectbox("Kategori Masalah Utama", ["Akademik", "Non Akademik"]) 
             with col_fb3:
                 feedback_mhs = st.text_area("Feedback / Pesan untuk Tim BK (Opsional)", placeholder="Tuliskan keluhan atau hal yang ingin dikonsultasikan...")
 
@@ -342,20 +342,26 @@ else:
                     status_str = class_map.get(pred_class, "Aman")
 
                     # ----------------------------------------------------
-                    # SISTEM HIBRIDA (RULE OVERRIDE UNTUK KASUS EKSTREM)
+                    # SISTEM HIBRIDA & SINKRONISASI LOGIKA
                     # ----------------------------------------------------
-                    if stress_level == 5 and sleep_hour < 4.0:
+                    # Hitung berapa parameter yang aman secara mandiri
+                    safe_count = 0
+                    if sleep_hour >= 7.0: safe_count += 1
+                    if 3.0 <= study_hour <= 8.0: safe_count += 1
+                    if stress_level <= 2: safe_count += 1
+                    if GPA >= 3.01: safe_count += 1
+                    if social_hour <= 4.0: safe_count += 1
+                    if physical_activity >= 1.0: safe_count += 1
+
+                    # Jika mayoritas parameter (minimal 5 dari 6) sudah aman, 
+                    # paksa status akhir menjadi Aman agar selaras dengan logika nyata.
+                    if safe_count >= 5:
+                        status_str = "Aman"
+                    elif stress_level == 5 and sleep_hour < 4.0:
                         status_str = "Berisiko Tinggi"
                     elif stress_level >= 4 or sleep_hour < 6.0 or GPA < 2.76:
                         if status_str == "Aman":
                             status_str = "Risiko Sedang"
-
-                    if status_str == "Berisiko Tinggi":
-                        keterangan_tindakan = "Wajib segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif."
-                    elif status_str == "Risiko Sedang":
-                        keterangan_tindakan = "Disarankan melakukan konsultasi preventif ke BK untuk evaluasi manajemen waktu dan penyesuaian gaya hidup."
-                    else:
-                        keterangan_tindakan = "Pertahankan pola gaya hidup seimbang, jaga konsistensi belajar, dan pertahankan waktu istirahat."
 
                     triggers = []
                     if sleep_hour < 6.0:
