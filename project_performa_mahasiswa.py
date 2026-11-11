@@ -243,11 +243,11 @@ else:
               * **Aman:** 7 – 9 jam / hari
               * **Sedang:** 6 – 6.9 jam / hari
               * **Tidak Aman:** < 6 jam / hari (Risiko kelelahan tinggi)
-            * **📚 Jam Belajar (*Study Hours*):**
+            * **Jam Belajar (*Study Hours*):**
               * **Aman:** 3 – 8 jam / hari
               * **Sedang:** 2 – 2.9 jam atau 8.1 – 10 jam / hari
               * **Tidak Aman:** < 2 jam atau > 10 jam / hari (Potensi *burnout*)
-            * **🧠 Tingkat Stres (*Stress Level*):**
+            * **Tingkat Stres (*Stress Level*):**
               * **Aman:** Skor 1 – 2 (Rendah)
               * **Sedang:** Skor 3 (Sedang)
               * **Tidak Aman:** Skor 4 – 5 (Tinggi / Krisis)
