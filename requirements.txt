@@ -7,4 +7,4 @@ matplotlib
 seaborn
 joblib
 plotly
-fpdf2
+openpyxl
