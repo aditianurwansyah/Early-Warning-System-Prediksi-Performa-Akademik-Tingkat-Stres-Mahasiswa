@@ -341,10 +341,7 @@ else:
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                    # ----------------------------------------------------
-                    # SISTEM HIBRIDA & SINKRONISASI LOGIKA
-                    # ----------------------------------------------------
-                    # Hitung berapa parameter yang aman secara mandiri
+                    # 1. SISTEM HIBRIDA & SINKRONISASI LOGIKA
                     safe_count = 0
                     if sleep_hour >= 7.0: safe_count += 1
                     if 3.0 <= study_hour <= 8.0: safe_count += 1
@@ -353,8 +350,6 @@ else:
                     if social_hour <= 4.0: safe_count += 1
                     if physical_activity >= 1.0: safe_count += 1
 
-                    # Jika mayoritas parameter (minimal 5 dari 6) sudah aman, 
-                    # paksa status akhir menjadi Aman agar selaras dengan logika nyata.
                     if safe_count >= 5:
                         status_str = "Aman"
                     elif stress_level == 5 and sleep_hour < 4.0:
@@ -362,6 +357,14 @@ else:
                     elif stress_level >= 4 or sleep_hour < 6.0 or GPA < 2.76:
                         if status_str == "Aman":
                             status_str = "Risiko Sedang"
+
+                    # 2. DEFINISIKAN KETERANGAN TINDAKAN BERDASARKAN STATUS FINAL
+                    if status_str == "Berisiko Tinggi":
+                        keterangan_tindakan = "Wajib segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif."
+                    elif status_str == "Risiko Sedang":
+                        keterangan_tindakan = "Disarankan melakukan konsultasi preventif ke BK untuk evaluasi manajemen waktu dan penyesuaian gaya hidup."
+                    else:
+                        keterangan_tindakan = "Pertahankan pola gaya hidup seimbang, jaga konsistensi belajar, dan pertahankan waktu istirahat."
 
                     triggers = []
                     if sleep_hour < 6.0:
