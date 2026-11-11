@@ -172,17 +172,23 @@ if not st.session_state.logged_in:
                 st.warning("Mohon lengkapi seluruh kolom pendaftaran.")
 
 else:
-    # Navigasi Sidebar (RBAC) & Pemilihan Model ML
+    # Navigasi Sidebar (RBAC)
     st.sidebar.title(f"Halo, {st.session_state.nama_lengkap}")
     st.sidebar.caption(f"Peran: **{st.session_state.user_role}**")
     st.sidebar.markdown("---")
-    
-    selected_model_name = st.sidebar.selectbox(
-        "Pilih Model Machine Learning", 
-        ["Random Forest (RF)", "XGBoost (XGB)"]
-    )
-    st.sidebar.markdown("---")
 
+    # Inisialisasi default model
+    selected_model_name = "Random Forest (RF)"
+
+    # PILIHAN MODEL ML HANYA MUNCUL KHUSUS UNTUK MAHASISWA
+    if st.session_state.user_role == "Mahasiswa":
+        selected_model_name = st.sidebar.selectbox(
+            "Pilih Model Machine Learning", 
+            ["Random Forest (RF)", "XGBoost (XGB)"]
+        )
+        st.sidebar.markdown("---")
+
+    # MENU UTAMA BERDASARKAN ROLE
     if st.session_state.user_role == "Mahasiswa":
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data"])
     elif st.session_state.user_role == "Bimbingan Konseling":
