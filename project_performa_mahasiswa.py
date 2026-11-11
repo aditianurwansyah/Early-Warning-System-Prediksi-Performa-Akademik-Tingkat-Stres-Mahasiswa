@@ -46,8 +46,7 @@ def load_user_db():
         df_default = pd.DataFrame([
             {"nama": "Administrator", "username": "admin", "password": make_hash("admin123"), "role": "Administrator"},
             {"nama": "Tim BK", "username": "bk", "password": make_hash("bk123"), "role": "Bimbingan Konseling"},
-            {"nama": "Zahra Mahasiswa", "username": "zahra", "password": make_hash("zahra123"), "role": "Mahasiswa"},
-            {"nama": "An", "username": "an", "password": make_hash("an123"), "role": "Mahasiswa"}  
+            {"nama": "Zahra Mahasiswa", "username": "zahra", "password": make_hash("zahra123"), "role": "Mahasiswa"}
         ])
         df_default.to_csv(USER_DB, index=False)
         return df_default
@@ -328,37 +327,35 @@ else:
                     if not triggers:
                         triggers.append("✨ Seluruh parameter gaya hidup berada dalam rentang yang seimbang dan sehat.")
 
-                    # SIMPAN HASIL KE CSV DENGAN KOLOM LENGKAP
-result_record = {
-    'Nama_Mahasiswa': st.session_state.nama_lengkap,
-    'Username': st.session_state.username,
-    'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    'Department': departemen,
-    'Study_Hours': study_hour,
-    'Extracurricular_Hours': extracurricular,
-    'Sleep_Hours': sleep_hour,
-    'Social_Hours': social_hour,
-    'Physical_Activity': physical_activity,
-    'GPA': GPA,
-    'Stress_Level': stress_level,
-    'Kategori_Masalah': kategori_masalah,
-    'Feedback': feedback_mhs if feedback_mhs else "-",
-    'Prediction': status_str,
-    'Keterangan': keterangan_tindakan
-}
-csv_file = 'student_predictions.csv'
-df_record = pd.DataFrame([result_record])
-
-# Jika file belum ada ATAU header file lama tidak sesuai, buat baru dari awal
-if not os.path.exists(csv_file):
-    df_record.to_csv(csv_file, index=False)
-else:
-    # Cek apakah kolom file lama sudah lengkap
-    existing_df = pd.read_csv(csv_file)
-    if 'Kategori_Masalah' not in existing_df.columns or 'Feedback' not in existing_df.columns:
-        df_record.to_csv(csv_file, index=False) # Timpa total jika format lama
-    else:
-        df_record.to_csv(csv_file, mode='a', header=False, index=False)
+                    # SIMPAN HASIL KE CSV DENGAN STRUKTUR LENGKAP
+                    result_record = {
+                        'Nama_Mahasiswa': st.session_state.nama_lengkap,
+                        'Username': st.session_state.username,
+                        'Timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        'Department': departemen,
+                        'Study_Hours': study_hour,
+                        'Extracurricular_Hours': extracurricular,
+                        'Sleep_Hours': sleep_hour,
+                        'Social_Hours': social_hour,
+                        'Physical_Activity': physical_activity,
+                        'GPA': GPA,
+                        'Stress_Level': stress_level,
+                        'Kategori_Masalah': kategori_masalah,
+                        'Feedback': feedback_mhs if feedback_mhs else "-",
+                        'Prediction': status_str,
+                        'Keterangan': keterangan_tindakan
+                    }
+                    csv_file = 'student_predictions.csv'
+                    df_record = pd.DataFrame([result_record])
+                    
+                    if not os.path.exists(csv_file):
+                        df_record.to_csv(csv_file, index=False)
+                    else:
+                        existing_df = pd.read_csv(csv_file)
+                        if 'Kategori_Masalah' not in existing_df.columns or 'Feedback' not in existing_df.columns:
+                            df_record.to_csv(csv_file, index=False)
+                        else:
+                            df_record.to_csv(csv_file, mode='a', header=False, index=False)
 
                     st.markdown("---")
                     st.subheader("📌 Hasil Analisis Sistem & Rekomendasi:")
