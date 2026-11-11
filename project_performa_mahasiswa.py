@@ -69,7 +69,7 @@ def map_gpa_category(val):
         return str(val)
 
 # ==========================================
-# 2. FUNGSI GENERATE LAPORAN PDF (LEBAR KOLOM PROPORSIONAL & TIDAK OVERFLOW)
+# 2. FUNGSI GENERATE LAPORAN PDF (KOLOM USER & AKTIVITAS DIPERLEBAR)
 # ==========================================
 def generate_pdf_report(df):
     pdf = FPDF(orientation='L', unit='mm', format='A4')
@@ -88,10 +88,10 @@ def generate_pdf_report(df):
     pdf.set_fill_color(230, 230, 230)
     
     col_widths = {
-        'Nama': 24, 'User': 12, 'Waktu': 24, 'Dept': 20, 
-        'Study': 6, 'Eskul': 6, 'Tidur': 6, 'Sosial': 6, 'Fisik': 6, 
-        'GPA': 28, 'Stres': 16, 'Masalah': 21, 'Feedback': 26, 
-        'Status': 20, 'Keterangan': 36
+        'Nama': 20, 'User': 16, 'Waktu': 24, 'Dept': 18, 
+        'Study': 9, 'Eskul': 9, 'Tidur': 9, 'Sosial': 9, 'Fisik': 9, 
+        'GPA': 24, 'Stres': 15, 'Masalah': 14, 'Feedback': 24, 
+        'Status': 18, 'Keterangan': 41
     }
     
     pdf.cell(col_widths['Nama'], 6, "Nama Mahasiswa", border=1, fill=True)
@@ -122,10 +122,10 @@ def generate_pdf_report(df):
     }
     
     for _, row in df.iterrows():
-        nama = str(row.get('Nama_Mahasiswa', '-'))[:24]
-        user = str(row.get('Username', '-'))[:12]
+        nama = str(row.get('Nama_Mahasiswa', '-'))[:22]
+        user = str(row.get('Username', '-'))[:15]
         waktu = str(row.get('Timestamp', '-'))[:19]
-        dept = str(row.get('Department', '-'))[:18]
+        dept = str(row.get('Department', '-'))[:16]
         
         study = str(row.get('Study_Hours', 0))
         eskul = str(row.get('Extracurricular_Hours', 0))
@@ -133,20 +133,19 @@ def generate_pdf_report(df):
         sosial = str(row.get('Social_Hours', 0))
         fisik = str(row.get('Physical_Activity', 0))
         
-        gpa_text = map_gpa_category(row.get('GPA', 0))[:32]
+        gpa_text = map_gpa_category(row.get('GPA', 0))[:28]
         
         raw_stres = row.get('Stress_Level', 3)
         if isinstance(raw_stres, (int, float)):
             stres = stress_mapping.get(int(raw_stres), str(raw_stres))
         else:
             stres = str(raw_stres)
-        stres = stres[:18]
+        stres = stres[:16]
         
-        # Batasi karakter kategori agar pas di kolom 21mm
-        masalah = str(row.get('Kategori_Masalah', '-'))[:13]
-        feedback = str(row.get('Feedback', '-'))[:35]
-        status = str(row.get('Prediction', '-'))[:15]
-        keterangan = str(row.get('Keterangan', '-'))[:55]
+        masalah = str(row.get('Kategori_Masalah', '-'))[:12]
+        feedback = str(row.get('Feedback', '-'))[:32]
+        status = str(row.get('Prediction', '-'))[:14]
+        keterangan = str(row.get('Keterangan', '-'))[:60]
         
         pdf.cell(col_widths['Nama'], 6, nama, border=1)
         pdf.cell(col_widths['User'], 6, user, border=1)
