@@ -235,7 +235,31 @@ else:
     elif menu == "Prediksi Mandiri Mahasiswa":
         st.subheader(f"Formulir Evaluasi Gaya Hidup & Prediksi Risiko ({selected_model_name})")
         st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan masukkan parameter gaya hidup dan keluhan Anda di bawah ini:")
-
+        # PANDUAN BATAS AMAN, SEDANG, & TIDAK AMAN (EXPANDER)
+        with st.expander("Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)"):
+            st.markdown("""
+            Berikut adalah standar acuan parameter gaya hidup dan akademik dalam sistem EWS:
+            * **Jam Tidur (*Sleep Hours*):**
+              * **Aman:** 7 – 9 jam / hari
+              * **Sedang:** 6 – 6.9 jam / hari
+              * **Tidak Aman:** < 6 jam / hari (Risiko kelelahan tinggi)
+            * **📚 Jam Belajar (*Study Hours*):**
+              * **Aman:** 3 – 8 jam / hari
+              * **Sedang:** 2 – 2.9 jam atau 8.1 – 10 jam / hari
+              * **Tidak Aman:** < 2 jam atau > 10 jam / hari (Potensi *burnout*)
+            * **🧠 Tingkat Stres (*Stress Level*):**
+              * **Aman:** Skor 1 – 2 (Rendah)
+              * **Sedang:** Skor 3 (Sedang)
+              * **Tidak Aman:** Skor 4 – 5 (Tinggi / Krisis)
+            * **Indeks Prestasi (GPA):**
+              * **Aman:** 3.01 – 4.00 (Tinggi)
+              * **Sedang:** 2.76 – 3.00 (Cukup)
+              * **Tidak Aman:** < 2.76 (Rendah / Risiko akademik)
+            * **Jam Sosialisasi & Aktivitas Fisik:**
+              * **Aman:** Sosialisasi 1–4 jam & Fisik 1–2 jam
+              * **Sedang:** Sosialisasi 5–6 jam & Fisik 0.5–0.9 jam
+              * **Tidak Aman:** Fisik 0 jam atau Sosialisasi > 6 jam (Distraksi waktu)
+            """)
         if model is None:
             st.warning(f"File model machine learning untuk **{selected_model_name}** belum ditemukan di direktori Anda (pastikan file `.pkl` tersedia).")
         else:
