@@ -643,4 +643,4 @@ else:
     elif menu == "Tentang Dataset & Fitur":
         st.subheader("Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen Bimbingan Konseling dan pengawasan eksekutif pimpinan universitas berbasis *Machine Learning*.")
-        st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier[cite: 4]\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)\n- **Fitur Utama:** Dashboard Eksekutif Wakil Rektor, Rekap Bulanan Akademik/Non-Akademik, Status Kasus Selesai/Proses, Data Mahasiswa Mengundurkan Diri (Dropout), dan Daftar Pemanggilan Khusus[cite: 4].")
+        st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier \n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)\n- **Fitur Utama:** Dashboard Eksekutif Wakil Rektor, Rekap Bulanan Akademik/Non-Akademik, Status Kasus Selesai/Proses, Data Mahasiswa Mengundurkan Diri (Dropout), dan Daftar Pemanggilan Khusus.")
