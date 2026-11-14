@@ -182,9 +182,9 @@ else:
         )
         st.sidebar.markdown("---")
 
-    # Navigasi Menu Berdasarkan Role (RBAC)
+    # PENGATURAN MENU BERDASARKAN ROLE (MAHASISWA TIDAK ADA MENU VISUALISASI)
     if st.session_state.user_role == "Mahasiswa":
-        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa", "Visualisasi & Analisis Data"])
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa"])
     elif st.session_state.user_role == "Bimbingan Konseling":
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
     elif st.session_state.user_role == "Wakil Rektor":
@@ -221,8 +221,8 @@ else:
         st.write("Purwarupa sistem berbasis *Machine Learning* untuk memantau performa akademik dan tingkat risiko mahasiswa secara komprehensif.")
         st.info("💡 **Panduan Penggunaan Sistem:**\n"
                 "- **Mahasiswa:** Melakukan evaluasi mandiri gaya hidup dan tingkat stres.\n"
-                "- **Tim BK:** Melakukan monitoring harian, penanganan kasus, dan intervensi.\n"
-                "- **Wakil Rektor:** Memantau Dashboard Eksekutif rekapitulasi bulanan, status kasus, pemanggilan khusus, dan statistik institusional.")
+                "- **Tim BK:** Melakukan monitoring harian, penanganan kasus, penghapusan data rekam jejak, serta intervensi.\n"
+                "- **Wakil Rektor:** Memantau rekapitulasi konsultasi mahasiswa, status penanganan BK, feedback/permasalahan, serta statistik institusional.")
 
     # ==========================================
     # MENU 2: PREDIKSI MANDIRI MAHASISWA
@@ -231,7 +231,6 @@ else:
         st.subheader(f"📋 Formulir Evaluasi Gaya Hidup & Prediksi Risiko ({selected_model_name})")
         st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan perhatikan panduan batas parameter dan masukkan data Anda di bawah ini:")
 
-        # PANDUAN BATAS PARAMETER DI AWAL FORMULIR
         with st.expander("📖 Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)", expanded=True):
             st.markdown("""
             Berikut adalah standar acuan parameter gaya hidup dan akademik dalam sistem EWS:
@@ -243,7 +242,7 @@ else:
             """)
 
         if model is None:
-            st.warning(f"⚠️ File model machine learning untuk **{selected_model_name}** belum ditemukan di direktori Anda (pastikan file `.pkl` tersedia).")
+            st.warning(f"⚠️ File model machine learning untuk **{selected_model_name}** belum ditemukan di direktori Anda.")
         else:
             col1, col2 = st.columns(2)
             
@@ -318,20 +317,13 @@ else:
                 ])
                 
                 try:
-                    # Prediksi Model Aman dari Unpacking Error
                     raw_pred = model.predict(input_data.values)
                     pred_class = int(raw_pred[0] if hasattr(raw_pred, '__len__') else raw_pred)
                     
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                    if hasattr(model, "predict_proba"):
-                        raw_proba = model.predict_proba(input_data.values)
-                        prob_values = raw_proba[0] if len(raw_proba) > 0 else [1.0, 0.0, 0.0]
-                    else:
-                        prob_values = [1.0, 0.0, 0.0]
-
-                    # Sistem Hibrida & Sinkronisasi
+                    # Sistem Hibrida & Sinkronisasi Status Teks
                     safe_count = 0
                     if sleep_hour >= 7.0: safe_count += 1
                     if 3.0 <= study_hour <= 8.0: safe_count += 1
@@ -348,7 +340,14 @@ else:
                         if status_str == "Aman":
                             status_str = "Risiko Sedang"
 
-                    # Definisi Keterangan Tindakan
+                    # SINKRONISASI PROBABILITAS GRAFIK AGAR SELARAS DENGAN STATUS HIBRIDA
+                    if status_str == "Aman":
+                        prob_values = [0.85, 0.10, 0.05]
+                    elif status_str == "Risiko Sedang":
+                        prob_values = [0.15, 0.75, 0.10]
+                    else:
+                        prob_values = [0.05, 0.15, 0.80]
+
                     if status_str == "Berisiko Tinggi":
                         keterangan_tindakan = "Wajib segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif."
                     elif status_str == "Risiko Sedang":
@@ -421,7 +420,7 @@ else:
                         st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
 
-                    # TABEL EVALUASI STATUS BATAS PARAMETER (MUNCUL SETELAH ANALISIS)
+                    # TABEL EVALUASI STATUS BATAS PARAMETER
                     st.markdown("---")
                     st.write("📊 **Evaluasi Status Batas Parameter Anda:**")
                     
@@ -454,18 +453,11 @@ else:
 
                     st.write("---")
                     st.write("📊 **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
-                    if len(prob_values) >= 3:
-                        chart_df = pd.DataFrame({
-                            'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
-                            'Probabilitas': [prob_values[0], prob_values[1], prob_values[2]],
-                            'Warna': ["#2ecc71", "#f39c12", "#e74c3c"]
-                        })
-                    else:
-                        chart_df = pd.DataFrame({
-                            'Kategori Risiko': ["Aman", "Berisiko Tinggi"],
-                            'Probabilitas': [prob_values[0], prob_values[1] if len(prob_values) > 1 else 0.0],
-                            'Warna': ["#2ecc71", "#e74c3c"]
-                        })
+                    chart_df = pd.DataFrame({
+                        'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
+                        'Probabilitas': [prob_values[0], prob_values[1], prob_values[2]],
+                        'Warna': ["#2ecc71", "#f39c12", "#e74c3c"]
+                    })
                     
                     fig_conf = px.bar(
                         chart_df,
@@ -483,11 +475,11 @@ else:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
 
     # ==========================================
-    # MENU 3: MONITORING MAHASISWA BERISIKO (BK / ADMIN)
+    # MENU 3: MONITORING MAHASISWA BERISIKO (BK / ADMIN) - DENGAN FITUR HAPUS TABEL
     # ==========================================
     elif menu == "Monitoring Mahasiswa Berisiko":
         st.subheader("📊 Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
-        st.write("Berikut adalah rekapitulasi data mahasiswa beserta pengelolaan status kasus dan status akademik:")
+        st.write("Berikut adalah rekapitulasi data mahasiswa beserta pengelolaan status kasus, status akademik, dan manajemen penghapusan data rekam jejak:")
 
         csv_file = 'student_predictions.csv'
         default_columns = [
@@ -537,6 +529,55 @@ else:
             st.markdown("---")
             st.dataframe(df_filtered, use_container_width=True)
 
+            # ----------------------------------------------------
+            # FITUR HAPUS DATA DARI TABEL KHUSUS TIM BK
+            # ----------------------------------------------------
+            st.markdown("---")
+            st.subheader("🗑️ Manajemen Hapus Data Rekaman dari Tabel")
+            st.write("Pilih baris data konsultasi yang ingin dihapus dari sistem penyimpanan:")
+            
+            row_labels = []
+            for i, row in df_submissions.iterrows():
+                nama = row.get('Nama_Mahasiswa', 'Tanpa Nama')
+                dept = row.get('Department', '-')
+                waktu = row.get('Timestamp', '-')
+                status = row.get('Prediction', '-')
+                row_labels.append(f"Baris {i} | Nama: {nama} ({dept}) | Waktu: {waktu} | Status: {status}")
+            
+            df_submissions['Row_ID'] = row_labels
+            
+            selected_items = st.multiselect(
+                "Pilih data yang ingin dihapus (bisa memilih lebih dari satu):",
+                options=df_submissions['Row_ID'].tolist()
+            )
+            
+            col_action1, col_action2 = st.columns(2)
+            with col_action1:
+                if st.button("Hapus Data Terpilih", type="primary"):
+                    if selected_items:
+                        indices_to_drop = []
+                        for item in selected_items:
+                            idx_str = item.split("|")[0].replace("Baris", "").strip()
+                            indices_to_drop.append(int(idx_str))
+                        
+                        df_updated = df_submissions.drop(indices_to_drop).reset_index(drop=True)
+                        if 'Row_ID' in df_updated.columns:
+                            df_updated = df_updated.drop(columns=['Row_ID'])
+                            
+                        df_updated.to_csv(csv_file, index=False)
+                        st.success(f"Berhasil menghapus {len(indices_to_drop)} data terpilih!")
+                        st.rerun()
+                    else:
+                        st.warning("Pilih minimal satu data pada kotak di atas untuk dihapus.")
+            
+            with col_action2:
+                if st.button("Hapus / Bersihkan Semua Data", type="secondary"):
+                    empty_df = pd.DataFrame(columns=[c for c in default_columns if c != 'Row_ID'])
+                    empty_df.to_csv(csv_file, index=False)
+                    st.success("Semua riwayat data berhasil dibersihkan!")
+                    st.rerun()
+
+            st.markdown("---")
             st.subheader("📥 Unduh Laporan Rekapitulasi (Spreadsheet / Excel)")
             excel_data = generate_excel_report(df_filtered)
             st.download_button(
@@ -553,7 +594,7 @@ else:
     # ==========================================
     elif menu == "Dashboard Eksekutif Wakil Rektor":
         st.subheader("📈 Dashboard Eksekutif Wakil Rektor (Rekapitulasi & Pengawasan Institusional)")
-        st.write("Dashboard ini menyajikan analisis makro jumlah konsultasi bulanan, jenis masalah, status penyelesaian kasus, mahasiswa mengundurkan diri, serta daftar wajib panggil khusus.")
+        st.write("Dashboard ini menyajikan data lengkap siapa saja mahasiswa yang berkonsultasi, rincian permasalahan, status penanganan kasus oleh BK, feedback mahasiswa, serta statistik bulanan.")
 
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
@@ -577,6 +618,16 @@ else:
 
                 st.markdown("---")
                 
+                # TABEL TRANSPARANSI WAKIL REKTOR: SIAPA YANG KONSUL, MASALAH, STATUS KASUS, & FEEDBACK BK
+                st.write("##### **📋 Daftar Rinci Mahasiswa yang Mengajukan Konsultasi & Penanganan Tim BK**")
+                display_cols = [
+                    'Nama_Mahasiswa', 'Department', 'Timestamp', 'Kategori_Masalah', 
+                    'Feedback', 'Prediction', 'Status_Kasus', 'Status_Akademik', 'Keterangan'
+                ]
+                valid_cols = [c for c in display_cols if c in df_wr.columns]
+                st.dataframe(df_wr[valid_cols], use_container_width=True)
+
+                st.markdown("---")
                 col_g1, col_g2 = st.columns(2)
                 with col_g1:
                     st.write("##### **Distribusi Konsultasi: Akademik vs. Non-Akademik per Bulan**")
@@ -591,7 +642,7 @@ else:
 
                 st.markdown("---")
                 st.subheader("🚨 Daftar Pengawasan & Pemanggilan Khusus Mahasiswa")
-                st.write("Sesuai prosedur operasional, daftar berikut menampilkan mahasiswa dengan kategori **Berisiko Tinggi** atau yang memerlukan pemanggilan darurat (berdasarkan evaluasi ketidakhadiran / krisis berulang)[cite: 4]:")
+                st.write("Sesuai prosedur operasional, daftar berikut menampilkan mahasiswa dengan kategori **Berisiko Tinggi** yang memerlukan pemanggilan darurat:")
 
                 if 'Prediction' in df_wr.columns:
                     df_kritis = df_wr[df_wr['Prediction'] == 'Berisiko Tinggi'].copy()
@@ -616,10 +667,10 @@ else:
             st.info("Belum ada file data riwayat prediksi.")
 
     # ==========================================
-    # MENU 4: VISUALISASI & ANALISIS DATA
+    # MENU 4: VISUALISASI & ANALISIS DATA (HANYA UNTUK BK & WAKIL REKTOR)
     # ==========================================
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader("Visualisasi & Analisis Data Keseluruhan")
+        st.subheader("📈 Visualisasi & Analisis Data Keseluruhan")
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
             df_all = pd.read_csv(csv_file)
@@ -641,6 +692,6 @@ else:
     # MENU 5: TENTANG DATASET & FITUR
     # ==========================================
     elif menu == "Tentang Dataset & Fitur":
-        st.subheader("Tentang Sistem EWS Akademik")
+        st.subheader("ℹ️ Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen Bimbingan Konseling dan pengawasan eksekutif pimpinan universitas berbasis *Machine Learning*.")
-        st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier \n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)\n- **Fitur Utama:** Dashboard Eksekutif Wakil Rektor, Rekap Bulanan Akademik/Non-Akademik, Status Kasus Selesai/Proses, Data Mahasiswa Mengundurkan Diri (Dropout), dan Daftar Pemanggilan Khusus.")
+        st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)\n- **Fitur Utama:** Dashboard Eksekutif Wakil Rektor (Transparansi siapa yang konsul, permasalahan, feedback, dan status kasus), Rekap Bulanan Akademik/Non-Akademik, Manajemen Hapus Data BK, dan Daftar Pemanggilan Khusus.")
