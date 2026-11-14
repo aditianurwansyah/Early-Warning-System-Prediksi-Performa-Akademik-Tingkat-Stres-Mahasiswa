@@ -619,7 +619,7 @@ else:
     # MENU 4: VISUALISASI & ANALISIS DATA
     # ==========================================
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader("📈 Visualisasi & Analisis Data Keseluruhan")
+        st.subheader("Visualisasi & Analisis Data Keseluruhan")
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
             df_all = pd.read_csv(csv_file)
@@ -641,6 +641,6 @@ else:
     # MENU 5: TENTANG DATASET & FITUR
     # ==========================================
     elif menu == "Tentang Dataset & Fitur":
-        st.subheader("ℹ️ Tentang Sistem EWS Akademik")
+        st.subheader("Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen Bimbingan Konseling dan pengawasan eksekutif pimpinan universitas berbasis *Machine Learning*.")
         st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier[cite: 4]\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)\n- **Fitur Utama:** Dashboard Eksekutif Wakil Rektor, Rekap Bulanan Akademik/Non-Akademik, Status Kasus Selesai/Proses, Data Mahasiswa Mengundurkan Diri (Dropout), dan Daftar Pemanggilan Khusus[cite: 4].")
