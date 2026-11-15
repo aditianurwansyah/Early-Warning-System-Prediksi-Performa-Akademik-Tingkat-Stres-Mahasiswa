@@ -317,14 +317,12 @@ else:
                 ])
                 
                 try:
-                    # 1. Prediksi Kelas Utama
                     raw_pred = model.predict(input_data.values)
                     pred_class = int(raw_pred[0] if hasattr(raw_pred, '__len__') else raw_pred)
                     
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                    # 2. Ambil Probabilitas Asli dari Model (.predict_proba)
                     if hasattr(model, "predict_proba"):
                         raw_probs = model.predict_proba(input_data.values)[0]
                         prob_aman = float(raw_probs[0])
@@ -333,7 +331,6 @@ else:
                     else:
                         prob_aman, prob_sedang, prob_tinggi = 0.33, 0.33, 0.34
 
-                    # 3. Sistem Hibrida & Sinkronisasi Status Teks
                     safe_count = 0
                     if sleep_hour >= 7.0: safe_count += 1
                     if 3.0 <= study_hour <= 8.0: safe_count += 1
@@ -342,21 +339,17 @@ else:
                     if social_hour <= 4.0: safe_count += 1
                     if physical_activity >= 1.0: safe_count += 1
 
-                    # Hitung berapa banyak parameter yang berstatus Tidak Aman (total 6 parameter)
                     unsafe_count = 6 - safe_count
 
-                    # Aturan Hibrida yang Diperbarui (Memperhitungkan Akumulasi Kerusakan)
                     if safe_count >= 5:
                         status_str = "Aman"
                     elif unsafe_count >= 4 or (stress_level == 5 and sleep_hour < 4.0):
-                        # Jika parameter tidak aman >= 4 ATAU stres maksimal dengan kurang tidur parah
                         status_str = "Berisiko Tinggi"
                     elif stress_level >= 4 or sleep_hour < 6.0 or GPA < 2.76:
                         status_str = "Risiko Sedang"
                     else:
                         status_str = "Aman"
 
-                    # 4. SINKRONISASI PROBABILITAS GRAFIK DENGAN ATURAN HIBRIDA
                     if status_str == "Aman":
                         prob_values = [max(prob_aman, 0.75), min(prob_sedang, 0.20), min(prob_tinggi, 0.05)]
                     elif status_str == "Risiko Sedang":
@@ -364,7 +357,6 @@ else:
                     else:
                         prob_values = [min(prob_aman, 0.05), min(prob_sedang, 0.20), max(prob_tinggi, 0.75)]
 
-                    # Normalisasi agar total 1.0 (100%)
                     total_p = sum(prob_values)
                     prob_values = [p / total_p for p in prob_values]
 
@@ -392,7 +384,6 @@ else:
                     if not triggers:
                         triggers.append("✨ Seluruh parameter gaya hidup berada dalam rentang aman dan seimbang.")
 
-                    # Simpan ke CSV
                     result_record = {
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
                         'Username': st.session_state.username,
@@ -440,7 +431,6 @@ else:
                         st.success("✅ **Status: AMAN (Berpotensi Lulus Tepat Waktu dengan Performa Baik)**")
                         st.info(f"**Rekomendasi Tindakan:** {keterangan_tindakan}")
 
-                    # TABEL EVALUASI STATUS BATAS PARAMETER
                     st.markdown("---")
                     st.write("📊 **Evaluasi Status Batas Parameter Anda:**")
                     
@@ -685,7 +675,7 @@ else:
     # MENU 4: VISUALISASI & ANALISIS DATA
     # ==========================================
     elif menu == "Visualisasi & Analisis Data":
-        st.subheader("📈 Visualisasi & Analisis Data Keseluruhan")
+        st.subheader("Visualisasi & Analisis Data Keseluruhan")
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
             df_all = pd.read_csv(csv_file)
@@ -704,9 +694,30 @@ else:
             st.info("Belum ada file data riwayat prediksi.")
 
     # ==========================================
-    # MENU 5: TENTANG DATASET & FITUR
+    # MENU 5: TENTANG DATASET & FITUR (DIKEMASKINI DENGAN TABEL VARIABEL)
     # ==========================================
     elif menu == "Tentang Dataset & Fitur":
-        st.subheader("ℹ️ Tentang Sistem EWS Akademik")
+        st.subheader("Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen Bimbingan Konseling dan pengawasan eksekutif pimpinan universitas berbasis *Machine Learning*.")
-        st.markdown("- **Model:** Random Forest Classifier & XGBoost Classifier\n- **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)\n- **Fitur Utama:** Dashboard Eksekutif Wakil Rektor (Transparansi siapa yang konsul, permasalahan, feedback, dan status kasus), Rekap Bulanan Akademik/Non-Akademik, Manajemen Hapus Data BK, dan Daftar Pemanggilan Khusus.")
+        
+        st.markdown("""
+        - **Model:** Random Forest Classifier & XGBoost Classifier
+        - **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)
+        - **Fitur Utama:** Dashboard Eksekutif Wakil Rektor (Transparansi siapa yang konsul, permasalahan, feedback, dan status kasus), Rekap Bulanan Akademik/Non-Akademik, Manajemen Hapus Data BK, dan Daftar Pemanggilan Khusus.
+        """)
+        
+        st.markdown("---")
+        st.subheader("Informasi Variabel Dataset *Student Lifestyle*")
+        st.write("Sistem ini dilatih menggunakan 7 fitur utama yang merepresentasikan kebiasaan sehari-hari mahasiswa:")
+        
+        # Tabel Penjelasan Variabel Dataset
+        dataset_info = pd.DataFrame([
+            {"Nama Fitur": "Study_Hours_Per_Day", "Deskripsi": "Durasi rata-rata waktu belajar mandiri dan kuliah dalam sehari (Jam)"},
+            {"Nama Fitur": "Extracurricular_Hours_Per_Day", "Deskripsi": "Durasi waktu untuk kegiatan organisasi / ekstrakurikuler dalam sehari (Jam)"},
+            {"Nama Fitur": "Sleep_Hours_Per_Day", "Deskripsi": "Durasi waktu istirahat tidur dalam sehari (Jam)"},
+            {"Nama Fitur": "Social_Hours_Per_Day", "Deskripsi": "Durasi waktu bersosialisasi dan rekreasi dalam sehari (Jam)"},
+            {"Nama Fitur": "Physical_Activity_Hours_Per_Day", "Deskripsi": "Durasi waktu olahraga atau aktivitas fisik dalam sehari (Jam)"},
+            {"Nama Fitur": "GPA", "Deskripsi": "Nilai Indeks Prestasi Kumulatif mahasiswa"},
+            {"Nama Fitur": "Stress_Level", "Deskripsi": "Tingkat stres: 1 (Sangat Rendah), 2 (Rendah), 3 (Sedang), 4 (Tinggi), 5 (Sangat Tinggi)"}
+        ])
+        st.dataframe(dataset_info, use_container_width=True, hide_index=True)
