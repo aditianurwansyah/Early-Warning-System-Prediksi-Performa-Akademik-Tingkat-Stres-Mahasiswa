@@ -231,15 +231,15 @@ else:
         st.subheader(f"Formulir Evaluasi Gaya Hidup & Prediksi Risiko ({selected_model_name})")
         st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan perhatikan panduan batas parameter dan masukkan data Anda di bawah ini:")
 
-        # with st.expander("📖 Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)", expanded=True):
-        #     st.markdown("""
-        #     Berikut adalah standar acuan parameter gaya hidup dan akademik dalam sistem EWS:
-        #     * **⏱️ Jam Tidur (*Sleep Hours*):** 🟢 Aman: 7–9 jam | 🟡 Sedang: 6–6.9 jam | 🔴 Tidak Aman: < 6 jam
-        #     * **📚 Jam Belajar (*Study Hours*):** 🟢 Aman: 3–8 jam | 🟡 Sedang: 2–2.9 / 8.1–10 jam | 🔴 Tidak Aman: < 2 / > 10 jam
-        #     * **🧠 Tingkat Stres (*Stress Level*):** 🟢 Aman: Skor 1–2 | 🟡 Sedang: Skor 3 | 🔴 Tidak Aman: Skor 4–5
-        #     * **📉 Indeks Prestasi (GPA):** 🟢 Aman: 3.01–4.00 | 🟡 Sedang: 2.76–3.00 | 🔴 Tidak Aman: < 2.76
-        #     * **🎉 Jam Sosialisasi & Aktivitas Fisik:** 🟢 Aman: Sosialisasi 1–4 jam & Fisik 1–2 jam
-        #     """)
+        with st.expander("Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)", expanded=True):
+              st.markdown("""
+              Berikut adalah standar acuan parameter gaya hidup dan akademik dalam sistem EWS:
+              * **Jam Tidur (*Sleep Hours*):** Aman: 7–9 jam | Sedang: 6–6.9 jam | Tidak Aman: < 6 jam
+              * **Jam Belajar (*Study Hours*):** Aman: 3–8 jam | Sedang: 2–2.9 / 8.1–10 jam | Tidak Aman: < 2 / > 10 jam
+              * **Tingkat Stres (*Stress Level*):** Aman: Skor 1–2 | Sedang: Skor 3 | Tidak Aman: Skor 4–5
+              * **Indeks Prestasi (GPA):** Aman: 3.01–4.00 | Sedang: 2.76–3.00 | Tidak Aman: < 2.76
+              * **Jam Sosialisasi & Aktivitas Fisik:** Aman: Sosialisasi 1–4 jam & Fisik 1–2 jam
+              """)
 
         if model is None:
             st.warning(f"File model machine learning untuk **{selected_model_name}** (`model_rf.pkl` atau `model_xgb.pkl`) belum ditemukan di direktori Anda.")
@@ -382,7 +382,7 @@ else:
                         triggers.append(f"**Waktu Sosialisasi Tinggi (Tidak Aman):** {social_hour} jam/hari.")
                     
                     if not triggers:
-                        triggers.append("✨ Seluruh parameter gaya hidup berada dalam rentang aman dan seimbang.")
+                        triggers.append("Seluruh parameter gaya hidup berada dalam rentang aman dan seimbang.")
 
                     result_record = {
                         'Nama_Mahasiswa': st.session_state.nama_lengkap,
