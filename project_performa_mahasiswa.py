@@ -231,15 +231,15 @@ else:
         st.subheader(f"Formulir Evaluasi Gaya Hidup & Prediksi Risiko ({selected_model_name})")
         st.write(f"Halo **{st.session_state.nama_lengkap}**, silakan perhatikan panduan batas parameter dan masukkan data Anda di bawah ini:")
 
-        with st.expander("Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)", expanded=True):
-              st.markdown("""
-              Berikut adalah standar acuan parameter gaya hidup dan akademik dalam sistem EWS:
-              * **Jam Tidur (*Sleep Hours*):** Aman: 7–9 jam | Sedang: 6–6.9 jam | Tidak Aman: < 6 jam
-              * **Jam Belajar (*Study Hours*):** Aman: 3–8 jam | Sedang: 2–2.9 / 8.1–10 jam | Tidak Aman: < 2 / > 10 jam
-              * **Tingkat Stres (*Stress Level*):** Aman: Skor 1–2 | Sedang: Skor 3 | Tidak Aman: Skor 4–5
-              * **Indeks Prestasi (GPA):** Aman: 3.01–4.00 | Sedang: 2.76–3.00 | Tidak Aman: < 2.76
-              * **Jam Sosialisasi & Aktivitas Fisik:** Aman: Sosialisasi 1–4 jam & Fisik 1–2 jam
-              """)
+        # with st.expander("Lihat Panduan Rentang Batas (Aman, Sedang, & Berisiko)", expanded=True):
+        #       st.markdown("""
+        #       Berikut adalah standar acuan parameter gaya hidup dan akademik dalam sistem EWS:
+        #       * **Jam Tidur (*Sleep Hours*):** Aman: 7–9 jam | Sedang: 6–6.9 jam | Tidak Aman: < 6 jam
+        #       * **Jam Belajar (*Study Hours*):** Aman: 3–8 jam | Sedang: 2–2.9 / 8.1–10 jam | Tidak Aman: < 2 / > 10 jam
+        #       * **Tingkat Stres (*Stress Level*):** Aman: Skor 1–2 | Sedang: Skor 3 | Tidak Aman: Skor 4–5
+        #       * **Indeks Prestasi (GPA):** Aman: 3.01–4.00 | Sedang: 2.76–3.00 | Tidak Aman: < 2.76
+        #       * **Jam Sosialisasi & Aktivitas Fisik:** Aman: Sosialisasi 1–4 jam & Fisik 1–2 jam
+        #       """)
 
         if model is None:
             st.warning(f"File model machine learning untuk **{selected_model_name}** (`model_rf.pkl` atau `model_xgb.pkl`) belum ditemukan di direktori Anda.")
@@ -435,23 +435,23 @@ else:
                     st.write("**Evaluasi Status Batas Parameter Anda:**")
                     
                     param_evals = []
-                    s_stat, s_ico = ("Aman") if sleep_hour >= 7.0 else ("Sedang") if sleep_hour >= 6.0 else ("Tidak Aman")
-                    param_evals.append({"Parameter": "Jam Tidur", "Nilai Anda": f"{sleep_hour} jam/hari", "Status": f"{s_ico} {s_stat}", "Standar Acuan": "7 - 9 jam"})
+                    s_stat  = ("Aman") if sleep_hour >= 7.0 else ("Sedang") if sleep_hour >= 6.0 else ("Tidak Aman")
+                    param_evals.append({"Parameter": "Jam Tidur", "Nilai Anda": f"{sleep_hour} jam/hari", "Status": f"{s_stat}", "Standar Acuan": "7 - 9 jam"})
                     
-                    st_stat, st_ico = ("Aman") if (3.0 <= study_hour <= 8.0) else ("Sedang") if ((2.0 <= study_hour < 3.0) or (8.1 <= study_hour <= 10.0)) else ("Tidak Aman")
-                    param_evals.append({"Parameter": "Jam Belajar", "Nilai Anda": f"{study_hour} jam/hari", "Status": f"{st_ico} {st_stat}", "Standar Acuan": "3 - 8 jam"})
+                    st_stat = ("Aman") if (3.0 <= study_hour <= 8.0) else ("Sedang") if ((2.0 <= study_hour < 3.0) or (8.1 <= study_hour <= 10.0)) else ("Tidak Aman")
+                    param_evals.append({"Parameter": "Jam Belajar", "Nilai Anda": f"{study_hour} jam/hari", "Status": f"{st_stat}", "Standar Acuan": "3 - 8 jam"})
                     
-                    str_stat, str_ico = ("Aman") if stress_level <= 2 else ("Sedang") if stress_level == 3 else ("Tidak Aman")
-                    param_evals.append({"Parameter": "Tingkat Stres", "Nilai Anda": f"Skor {stress_level}", "Status": f"{str_ico} {str_stat}", "Standar Acuan": "Skor 1 - 2"})
+                    str_stat = ("Aman") if stress_level <= 2 else ("Sedang") if stress_level == 3 else ("Tidak Aman")
+                    param_evals.append({"Parameter": "Tingkat Stres", "Nilai Anda": f"Skor {stress_level}", "Status": f"{str_stat}", "Standar Acuan": "Skor 1 - 2"})
                     
-                    g_stat, g_ico = ("Aman") if GPA >= 3.01 else ("Sedang") if GPA >= 2.76 else ("Tidak Aman")
-                    param_evals.append({"Parameter": "Indeks Prestasi (GPA)", "Nilai Anda": f"{GPA}", "Status": f"{g_ico} {g_stat}", "Standar Acuan": "3.01 - 4.00"})
+                    g_stat = ("Aman") if GPA >= 3.01 else ("Sedang") if GPA >= 2.76 else ("Tidak Aman")
+                    param_evals.append({"Parameter": "Indeks Prestasi (GPA)", "Nilai Anda": f"{GPA}", "Status": f" {g_stat}", "Standar Acuan": "3.01 - 4.00"})
                     
-                    soc_stat, soc_ico = ("Aman") if social_hour <= 4.0 else ("Sedang") if social_hour <= 6.0 else ("Tidak Aman")
-                    param_evals.append({"Parameter": "Jam Sosialisasi", "Nilai Anda": f"{social_hour} jam/hari", "Status": f"{soc_ico} {soc_stat}", "Standar Acuan": "1 - 4 jam"})
+                    soc_stat = ("Aman") if social_hour <= 4.0 else ("Sedang") if social_hour <= 6.0 else ("Tidak Aman")
+                    param_evals.append({"Parameter": "Jam Sosialisasi", "Nilai Anda": f"{social_hour} jam/hari", "Status": f" {soc_stat}", "Standar Acuan": "1 - 4 jam"})
                     
-                    pa_stat, pa_ico = ("Aman") if physical_activity >= 1.0 else ("Sedang") if physical_activity >= 0.5 else ("Tidak Aman")
-                    param_evals.append({"Parameter": "Aktivitas Fisik", "Nilai Anda": f"{physical_activity} jam/hari", "Status": f"{pa_ico} {pa_stat}", "Standar Acuan": "1 - 2 jam"})
+                    pa_stat = ("Aman") if physical_activity >= 1.0 else ("Sedang") if physical_activity >= 0.5 else ("Tidak Aman")
+                    param_evals.append({"Parameter": "Aktivitas Fisik", "Nilai Anda": f"{physical_activity} jam/hari", "Status": f"{pa_stat}", "Standar Acuan": "1 - 2 jam"})
 
                     df_eval_table = pd.DataFrame(param_evals)
                     st.dataframe(df_eval_table, use_container_width=True, hide_index=True)
