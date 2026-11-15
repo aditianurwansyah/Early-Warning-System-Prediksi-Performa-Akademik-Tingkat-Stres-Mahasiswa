@@ -182,7 +182,7 @@ else:
         )
         st.sidebar.markdown("---")
 
-    # PENGATURAN MENU BERDASARKAN ROLE (MAHASISWA TIDAK ADA MENU VISUALISASI)
+    # PENGATURAN MENU BERDASARKAN ROLE
     if st.session_state.user_role == "Mahasiswa":
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Prediksi Mandiri Mahasiswa"])
     elif st.session_state.user_role == "Bimbingan Konseling":
@@ -242,7 +242,7 @@ else:
             """)
 
         if model is None:
-            st.warning(f"⚠️ File model machine learning untuk **{selected_model_name}** belum ditemukan di direktori Anda.")
+            st.warning(f"⚠️ File model machine learning untuk **{selected_model_name}** (`model_rf.pkl` atau `model_xgb.pkl`) belum ditemukan di direktori Anda.")
         else:
             col1, col2 = st.columns(2)
             
@@ -317,13 +317,23 @@ else:
                 ])
                 
                 try:
+                    # 1. Prediksi Kelas Utama
                     raw_pred = model.predict(input_data.values)
                     pred_class = int(raw_pred[0] if hasattr(raw_pred, '__len__') else raw_pred)
                     
                     class_map = {0: "Aman", 1: "Risiko Sedang", 2: "Berisiko Tinggi"}
                     status_str = class_map.get(pred_class, "Aman")
 
-                    # Sistem Hibrida & Sinkronisasi Status Teks
+                    # 2. Ambil Probabilitas Asli dari Model (.predict_proba)
+                    if hasattr(model, "predict_proba"):
+                        raw_probs = model.predict_proba(input_data.values)[0]
+                        prob_aman = float(raw_probs[0])
+                        prob_sedang = float(raw_probs[1])
+                        prob_tinggi = float(raw_probs[2])
+                    else:
+                        prob_aman, prob_sedang, prob_tinggi = 0.33, 0.33, 0.34
+
+                    # 3. Sistem Hibrida & Sinkronisasi Status Teks
                     safe_count = 0
                     if sleep_hour >= 7.0: safe_count += 1
                     if 3.0 <= study_hour <= 8.0: safe_count += 1
@@ -340,13 +350,17 @@ else:
                         if status_str == "Aman":
                             status_str = "Risiko Sedang"
 
-                    # SINKRONISASI PROBABILITAS GRAFIK AGAR SELARAS DENGAN STATUS HIBRIDA
+                    # 4. SINKRONISASI PROBABILITAS GRAFIK DENGAN ATURAN HIBRIDA
                     if status_str == "Aman":
-                        prob_values = [0.85, 0.10, 0.05]
+                        prob_values = [max(prob_aman, 0.75), min(prob_sedang, 0.20), min(prob_tinggi, 0.05)]
                     elif status_str == "Risiko Sedang":
-                        prob_values = [0.15, 0.75, 0.10]
+                        prob_values = [min(prob_aman, 0.20), max(prob_sedang, 0.70), min(prob_tinggi, 0.10)]
                     else:
-                        prob_values = [0.05, 0.15, 0.80]
+                        prob_values = [min(prob_aman, 0.05), min(prob_sedang, 0.20), max(prob_tinggi, 0.75)]
+
+                    # Normalisasi agar total 1.0 (100%)
+                    total_p = sum(prob_values)
+                    prob_values = [p / total_p for p in prob_values]
 
                     if status_str == "Berisiko Tinggi":
                         keterangan_tindakan = "Wajib segera menjadwalkan sesi konseling tatap muka dengan petugas BK untuk penanganan intensif."
@@ -452,7 +466,7 @@ else:
                         st.markdown(f"- {trig}")
 
                     st.write("---")
-                    st.write("📊 **Visualisasi Tingkat Keyakinan Model (*Confidence Score Chart*):**")
+                    st.write(f"📊 **Visualisasi Tingkat Keyakinan Model ({selected_model_name} - *Confidence Score Chart*):**")
                     chart_df = pd.DataFrame({
                         'Kategori Risiko': ["Aman", "Risiko Sedang", "Berisiko Tinggi"],
                         'Probabilitas': [prob_values[0], prob_values[1], prob_values[2]],
@@ -475,7 +489,7 @@ else:
                     st.error(f"Terjadi kesalahan saat memproses prediksi: {e}")
 
     # ==========================================
-    # MENU 3: MONITORING MAHASISWA BERISIKO (BK / ADMIN) - DENGAN FITUR HAPUS TABEL
+    # MENU 3: MONITORING MAHASISWA BERISIKO (BK / ADMIN)
     # ==========================================
     elif menu == "Monitoring Mahasiswa Berisiko":
         st.subheader("📊 Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
@@ -529,9 +543,6 @@ else:
             st.markdown("---")
             st.dataframe(df_filtered, use_container_width=True)
 
-            # ----------------------------------------------------
-            # FITUR HAPUS DATA DARI TABEL KHUSUS TIM BK
-            # ----------------------------------------------------
             st.markdown("---")
             st.subheader("🗑️ Manajemen Hapus Data Rekaman dari Tabel")
             st.write("Pilih baris data konsultasi yang ingin dihapus dari sistem penyimpanan:")
@@ -617,8 +628,6 @@ else:
                 col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
 
                 st.markdown("---")
-                
-                # TABEL TRANSPARANSI WAKIL REKTOR: SIAPA YANG KONSUL, MASALAH, STATUS KASUS, & FEEDBACK BK
                 st.write("##### **📋 Daftar Rinci Mahasiswa yang Mengajukan Konsultasi & Penanganan Tim BK**")
                 display_cols = [
                     'Nama_Mahasiswa', 'Department', 'Timestamp', 'Kategori_Masalah', 
@@ -667,7 +676,7 @@ else:
             st.info("Belum ada file data riwayat prediksi.")
 
     # ==========================================
-    # MENU 4: VISUALISASI & ANALISIS DATA (HANYA UNTUK BK & WAKIL REKTOR)
+    # MENU 4: VISUALISASI & ANALISIS DATA
     # ==========================================
     elif menu == "Visualisasi & Analisis Data":
         st.subheader("📈 Visualisasi & Analisis Data Keseluruhan")
