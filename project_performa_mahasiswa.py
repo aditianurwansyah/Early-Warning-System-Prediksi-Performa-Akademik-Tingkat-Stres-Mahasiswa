@@ -342,13 +342,19 @@ else:
                     if social_hour <= 4.0: safe_count += 1
                     if physical_activity >= 1.0: safe_count += 1
 
+                    # Hitung berapa banyak parameter yang berstatus Tidak Aman (total 6 parameter)
+                    unsafe_count = 6 - safe_count
+
+                    # Aturan Hibrida yang Diperbarui (Memperhitungkan Akumulasi Kerusakan)
                     if safe_count >= 5:
                         status_str = "Aman"
-                    elif stress_level == 5 and sleep_hour < 4.0:
+                    elif unsafe_count >= 4 or (stress_level == 5 and sleep_hour < 4.0):
+                        # Jika parameter tidak aman >= 4 ATAU stres maksimal dengan kurang tidur parah
                         status_str = "Berisiko Tinggi"
                     elif stress_level >= 4 or sleep_hour < 6.0 or GPA < 2.76:
-                        if status_str == "Aman":
-                            status_str = "Risiko Sedang"
+                        status_str = "Risiko Sedang"
+                    else:
+                        status_str = "Aman"
 
                     # 4. SINKRONISASI PROBABILITAS GRAFIK DENGAN ATURAN HIBRIDA
                     if status_str == "Aman":
