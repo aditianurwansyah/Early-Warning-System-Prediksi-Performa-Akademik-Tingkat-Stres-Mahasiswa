@@ -290,7 +290,7 @@ else:
             with col_fb1:
                 departemen = st.selectbox(
                     "Departemen / Program Studi", 
-                    ["Teknik Informatika", "Sistem Informasi", "Teknik Industri", "Manajemen", "Akuntansi", "Ilmu Komunikasi", "Lainnya"]
+                    ["Teknik Informatika", "Sistem Informasi", "Teknik Industri", "Manajemen Retail", "Desain Komunikasi Visual", "Bisnis Digital"]
                 )
             with col_fb2:
                 kategori_masalah = st.selectbox("Kategori Masalah Utama", ["Akademik", "Non Akademik"])
