@@ -117,7 +117,7 @@ def generate_excel_report(df):
 # 3. AUTENTIKASI (LOGIN & REGISTRASI)
 # ==========================================
 if not st.session_state.logged_in:
-    st.title("Early Warning System (EWS) - Performa & Risiko Akademik Mahasiswa")
+    st.title("Early Warning System (EWS) Prediksi & Bimbingan Konseling")
     st.markdown("---")
     
     tab_login, tab_register = st.tabs(["Masuk (Login)", "Registrasi Akun Mahasiswa"])
