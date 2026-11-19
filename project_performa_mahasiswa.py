@@ -14,7 +14,7 @@ from openpyxl.utils import get_column_letter
 # 1. KONFIGURASI HALAMAN STREAMLIT
 # ==========================================
 st.set_page_config(
-    page_title="Early Warning System - Performa Mahasiswa",
+    page_title="Early Warning System Prediksi & Bimbingan Konseling",
     page_icon="campus.png",
     layout="wide"
 )
