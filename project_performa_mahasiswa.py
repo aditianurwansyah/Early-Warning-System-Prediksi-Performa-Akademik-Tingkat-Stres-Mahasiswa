@@ -717,7 +717,7 @@ else:
     # ==========================================
     # MENU 4: VISUALISASI & ANALISIS DATA
     # ==========================================
-    elif menu == "Visualisasi & Analisis Data":
+        elif menu == "Visualisasi & Analisis Data":
         st.subheader("Visualisasi & Analisis Data Keseluruhan")
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
@@ -739,7 +739,7 @@ else:
     # ==========================================
     # MENU 5: TENTANG DATASET & FITUR (DIKEMASKINI DENGAN TABEL VARIABEL)
     # ==========================================
-    elif menu == "Tentang Dataset & Fitur":
+        elif menu == "Tentang Dataset & Fitur":
         st.subheader("Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen Bimbingan Konseling dan pengawasan eksekutif pimpinan universitas berbasis *Machine Learning*.")
         
