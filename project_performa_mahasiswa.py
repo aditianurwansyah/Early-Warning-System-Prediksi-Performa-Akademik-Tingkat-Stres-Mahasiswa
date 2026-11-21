@@ -491,23 +491,23 @@ else:
         st.subheader("Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko") 
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
-        df_bk = pd.read_csv(csv_file)
-        if not df_bk.empty:
-        df_bk['Timestamp'] = pd.to_datetime(df_bk['Timestamp'], errors='coerce')
-        df_bk['Bulan'] = df_bk['Timestamp'].dt.strftime('%Y-%m').fillna('2026-11')
+           df_bk = pd.read_csv(csv_file)
+           if not df_bk.empty:
+               df_bk['Timestamp'] = pd.to_datetime(df_bk['Timestamp'], errors='coerce')
+               df_bk['Bulan'] = df_bk['Timestamp'].dt.strftime('%Y-%m').fillna('2026-11')
 
-        total_konsul = len(df_bk)
-        akademik_count = len(df_bk[df_bk['Kategori_Masalah'] == 'Akademik']) if 'Kategori_Masalah' in df_bk.columns else 0
-        non_akademik_count = len(df_bk[df_bk['Kategori_Masalah'] == 'Non Akademik']) if 'Kategori_Masalah' in df_bk.columns else 0
-        selesai_count = len(df_bk[df_bk['Status_Kasus'] == 'Selesai']) if 'Status_Kasus' in df_bk.columns else 0
-        dropout_count = len(df_bk[df_bk['Status_Akademik'].str.contains("Mengundurkan Diri|Dropout", case=False, na=False)]) if 'Status_Akademik' in df_bk.columns else 0
+               total_konsul = len(df_bk)
+               akademik_count = len(df_bk[df_bk['Kategori_Masalah'] == 'Akademik']) if 'Kategori_Masalah' in df_bk.columns else 0
+               non_akademik_count = len(df_bk[df_bk['Kategori_Masalah'] == 'Non Akademik']) if 'Kategori_Masalah' in df_bk.columns else 0
+               selesai_count = len(df_bk[df_bk['Status_Kasus'] == 'Selesai']) if 'Status_Kasus' in df_bk.columns else 0
+               dropout_count = len(df_bk[df_bk['Status_Akademik'].str.contains("Mengundurkan Diri|Dropout", case=False, na=False)]) if 'Status_Akademik' in df_bk.columns else 0
 
-        col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-        col_m1.metric("Total Konsultasi", total_konsul)
-        col_m2.metric("Konsul Akademik", akademik_count)
-        col_m3.metric("Konsul Non-Akademik", non_akademik_count)
-        col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
-        col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
+               col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+               col_m1.metric("Total Konsultasi", total_konsul)
+               col_m2.metric("Konsul Akademik", akademik_count)
+               col_m3.metric("Konsul Non-Akademik", non_akademik_count)
+               col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
+               col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
         st.write("Berikut adalah rekapitulasi data mahasiswa beserta pengelolaan status kasus, status akademik, dan manajemen penghapusan data rekam jejak:")
 
         csv_file = 'student_predictions.csv'
