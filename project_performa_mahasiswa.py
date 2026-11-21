@@ -643,13 +643,13 @@ else:
         #         col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
 
                 # st.markdown("---")
-                st.write("##### **Daftar Rinci Mahasiswa yang Mengajukan Konsultasi & Penanganan Tim BK**")
-                display_cols = [
-                    'Nama_Mahasiswa', 'Department', 'Timestamp', 'Kategori_Masalah', 
-                    'Feedback', 'Prediction', 'Status_Kasus', 'Status_Akademik', 'Keterangan'
-                ]
-                valid_cols = [c for c in display_cols if c in df_wr.columns]
-                st.dataframe(df_wr[valid_cols], use_container_width=True)
+                # st.write("##### **Daftar Rinci Mahasiswa yang Mengajukan Konsultasi & Penanganan Tim BK**")
+                # display_cols = [
+                #     'Nama_Mahasiswa', 'Department', 'Timestamp', 'Kategori_Masalah', 
+                #     'Feedback', 'Prediction', 'Status_Kasus', 'Status_Akademik', 'Keterangan'
+                # ]
+                # valid_cols = [c for c in display_cols if c in df_wr.columns]
+                # st.dataframe(df_wr[valid_cols], use_container_width=True)
 
                 st.markdown("---")
                 col_g1, col_g2 = st.columns(2)
