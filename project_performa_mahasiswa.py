@@ -652,15 +652,15 @@ else:
                 # st.dataframe(df_wr[valid_cols], use_container_width=True)
 
                 # st.markdown("---")
-                col_g1, col_g2 = st.columns(2)
-                with col_g1:
-                    st.write("##### **Distribusi Konsultasi: Akademik vs. Non-Akademik per Bulan**")
-                    if 'Kategori_Masalah' in df_wr.columns:
+                  col_g1, col_g2 = st.columns(2)
+                    with col_g1:
+                        st.write("##### **Distribusi Konsultasi: Akademik vs. Non-Akademik per Bulan**")
+                        if 'Kategori_Masalah' in df_wr.columns:
                         fig_monthly = px.histogram(df_wr, x='Bulan', color='Kategori_Masalah', barmode='group', template='plotly_dark')
                         st.plotly_chart(fig_monthly, use_container_width=True)
-                with col_g2:
-                    st.write("##### **Status Penanganan Kasus Oleh Tim BK**")
-                    if 'Status_Kasus' in df_wr.columns:
+                    with col_g2:
+                        st.write("##### **Status Penanganan Kasus Oleh Tim BK**")
+                        if 'Status_Kasus' in df_wr.columns:
                         fig_status = px.pie(df_wr, names='Status_Kasus', title="Persentase Penyelesaian Kasus Mahasiswa", template='plotly_dark')
                         st.plotly_chart(fig_status, use_container_width=True)
 
