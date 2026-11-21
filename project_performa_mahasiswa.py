@@ -651,7 +651,7 @@ else:
                 # valid_cols = [c for c in display_cols if c in df_wr.columns]
                 # st.dataframe(df_wr[valid_cols], use_container_width=True)
 
-                st.markdown("---")
+                # st.markdown("---")
                 col_g1, col_g2 = st.columns(2)
                 with col_g1:
                     st.write("##### **Distribusi Konsultasi: Akademik vs. Non-Akademik per Bulan**")
