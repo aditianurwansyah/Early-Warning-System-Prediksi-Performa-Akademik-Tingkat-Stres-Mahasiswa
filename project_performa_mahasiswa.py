@@ -642,7 +642,7 @@ else:
         #         col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
         #         col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
 
-                st.markdown("---")
+                # st.markdown("---")
                 st.write("##### **Daftar Rinci Mahasiswa yang Mengajukan Konsultasi & Penanganan Tim BK**")
                 display_cols = [
                     'Nama_Mahasiswa', 'Department', 'Timestamp', 'Kategori_Masalah', 
