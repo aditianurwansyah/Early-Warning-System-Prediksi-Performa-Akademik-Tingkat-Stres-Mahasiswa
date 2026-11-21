@@ -188,7 +188,7 @@ else:
     elif st.session_state.user_role == "Bimbingan Konseling":
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
     elif st.session_state.user_role == "Wakil Rektor":
-        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Dashboard Eksekutif Wakil Rektor", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
+        menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Dashboard Eksekutif Wakil Rektor", "Visualisasi & Analisis Data"])
     else: # Administrator
         menu = st.sidebar.selectbox("Pilih Menu Utama", ["Beranda", "Monitoring Mahasiswa Berisiko", "Dashboard Eksekutif Wakil Rektor", "Visualisasi & Analisis Data", "Tentang Dataset & Fitur"])
 
@@ -746,7 +746,7 @@ else:
         st.markdown("""
         - **Model:** Random Forest Classifier & XGBoost Classifier
         - **Keamanan:** Encrypted SHA-256 Authentication & RBAC (Mahasiswa, Tim BK, Wakil Rektor, Administrator)
-        - **Fitur Utama:** Dashboard Eksekutif Wakil Rektor (Transparansi siapa yang konsul, permasalahan, feedback, dan status kasus), Rekap Bulanan Akademik/Non-Akademik, Manajemen Hapus Data BK, dan Daftar Pemanggilan Khusus.
+        - **Fitur Utama:** Dashboard Eksekutif Wakil Rektor (memperlihatkan riwayat yang dari bk sudah sampaikan.), Rekap Bulanan Akademik/Non-Akademik, Manajemen Hapus Data BK, dan Daftar Pemanggilan Khusus.
         """)
         
         st.markdown("---")
