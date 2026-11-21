@@ -488,7 +488,26 @@ else:
     # MENU 3: MONITORING MAHASISWA BERISIKO (BK / ADMIN)
     # ==========================================
     elif menu == "Monitoring Mahasiswa Berisiko":
-        st.subheader("Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko")
+        st.subheader("Dashboard Bimbingan Konseling: Monitoring Mahasiswa Berisiko") 
+        csv_file = 'student_predictions.csv'
+        if os.path.exists(csv_file):
+        df_bk = pd.read_csv(csv_file)
+        if not df_bk.empty:
+        df_bk['Timestamp'] = pd.to_datetime(df_bk['Timestamp'], errors='coerce')
+        df_bk['Bulan'] = df_bk['Timestamp'].dt.strftime('%Y-%m').fillna('2026-11')
+
+        total_konsul = len(df_bk)
+        akademik_count = len(df_bk[df_bk['Kategori_Masalah'] == 'Akademik']) if 'Kategori_Masalah' in df_bk.columns else 0
+        non_akademik_count = len(df_bk[df_bk['Kategori_Masalah'] == 'Non Akademik']) if 'Kategori_Masalah' in df_bk.columns else 0
+        selesai_count = len(df_bk[df_bk['Status_Kasus'] == 'Selesai']) if 'Status_Kasus' in df_bk.columns else 0
+        dropout_count = len(df_bk[df_bk['Status_Akademik'].str.contains("Mengundurkan Diri|Dropout", case=False, na=False)]) if 'Status_Akademik' in df_bk.columns else 0
+
+        col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+        col_m1.metric("Total Konsultasi", total_konsul)
+        col_m2.metric("Konsul Akademik", akademik_count)
+        col_m3.metric("Konsul Non-Akademik", non_akademik_count)
+        col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
+        col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
         st.write("Berikut adalah rekapitulasi data mahasiswa beserta pengelolaan status kasus, status akademik, dan manajemen penghapusan data rekam jejak:")
 
         csv_file = 'student_predictions.csv'
@@ -603,25 +622,25 @@ else:
         st.subheader("Dashboard Eksekutif Wakil Rektor (Rekapitulasi & Pengawasan Institusional)")
         st.write("Dashboard ini menyajikan data lengkap siapa saja mahasiswa yang berkonsultasi, rincian permasalahan, status penanganan kasus oleh BK, feedback mahasiswa, serta statistik bulanan.")
 
-        csv_file = 'student_predictions.csv'
-        if os.path.exists(csv_file):
-            df_wr = pd.read_csv(csv_file)
-            if not df_wr.empty:
-                df_wr['Timestamp'] = pd.to_datetime(df_wr['Timestamp'], errors='coerce')
-                df_wr['Bulan'] = df_wr['Timestamp'].dt.strftime('%Y-%m').fillna('2026-11')
+        # csv_file = 'student_predictions.csv'
+        # if os.path.exists(csv_file):
+        #     df_wr = pd.read_csv(csv_file)
+        #     if not df_wr.empty:
+        #         df_wr['Timestamp'] = pd.to_datetime(df_wr['Timestamp'], errors='coerce')
+        #         df_wr['Bulan'] = df_wr['Timestamp'].dt.strftime('%Y-%m').fillna('2026-11')
 
-                total_konsul = len(df_wr)
-                akademik_count = len(df_wr[df_wr['Kategori_Masalah'] == 'Akademik']) if 'Kategori_Masalah' in df_wr.columns else 0
-                non_akademik_count = len(df_wr[df_wr['Kategori_Masalah'] == 'Non Akademik']) if 'Kategori_Masalah' in df_wr.columns else 0
-                selesai_count = len(df_wr[df_wr['Status_Kasus'] == 'Selesai']) if 'Status_Kasus' in df_wr.columns else 0
-                dropout_count = len(df_wr[df_wr['Status_Akademik'].str.contains("Mengundurkan Diri|Dropout", case=False, na=False)]) if 'Status_Akademik' in df_wr.columns else 0
+        #         total_konsul = len(df_wr)
+        #         akademik_count = len(df_wr[df_wr['Kategori_Masalah'] == 'Akademik']) if 'Kategori_Masalah' in df_wr.columns else 0
+        #         non_akademik_count = len(df_wr[df_wr['Kategori_Masalah'] == 'Non Akademik']) if 'Kategori_Masalah' in df_wr.columns else 0
+        #         selesai_count = len(df_wr[df_wr['Status_Kasus'] == 'Selesai']) if 'Status_Kasus' in df_wr.columns else 0
+        #         dropout_count = len(df_wr[df_wr['Status_Akademik'].str.contains("Mengundurkan Diri|Dropout", case=False, na=False)]) if 'Status_Akademik' in df_wr.columns else 0
 
-                col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-                col_m1.metric("Total Konsultasi", total_konsul)
-                col_m2.metric("Konsul Akademik", akademik_count)
-                col_m3.metric("Konsul Non-Akademik", non_akademik_count)
-                col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
-                col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
+        #         col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+        #         col_m1.metric("Total Konsultasi", total_konsul)
+        #         col_m2.metric("Konsul Akademik", akademik_count)
+        #         col_m3.metric("Konsul Non-Akademik", non_akademik_count)
+        #         col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
+        #         col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
 
                 st.markdown("---")
                 st.write("##### **Daftar Rinci Mahasiswa yang Mengajukan Konsultasi & Penanganan Tim BK**")
@@ -645,17 +664,17 @@ else:
                         fig_status = px.pie(df_wr, names='Status_Kasus', title="Persentase Penyelesaian Kasus Mahasiswa", template='plotly_dark')
                         st.plotly_chart(fig_status, use_container_width=True)
 
-                st.markdown("---")
-                st.subheader("Daftar Pengawasan & Pemanggilan Khusus Mahasiswa")
-                st.write("Sesuai prosedur operasional, daftar berikut menampilkan mahasiswa dengan kategori **Berisiko Tinggi** yang memerlukan pemanggilan darurat:")
+                # st.markdown("---")
+                # st.subheader("Daftar Pengawasan & Pemanggilan Khusus Mahasiswa")
+                # st.write("Sesuai prosedur operasional, daftar berikut menampilkan mahasiswa dengan kategori **Berisiko Tinggi** yang memerlukan pemanggilan darurat:")
 
-                if 'Prediction' in df_wr.columns:
-                    df_kritis = df_wr[df_wr['Prediction'] == 'Berisiko Tinggi'].copy()
-                    if not df_kritis.empty:
-                        st.dataframe(df_kritis[['Nama_Mahasiswa', 'Department', 'Timestamp', 'GPA', 'Stress_Level', 'Keterangan', 'Status_Kasus']], use_container_width=True)
-                        st.warning("Wakil Rektor dapat merekomendasikan pemanggilan resmi bagi mahasiswa dalam daftar di atas apabila terindikasi mangkir atau tidak hadir dalam 2 sesi panggilan konseling berturut-turut dari Tim BK.")
-                    else:
-                        st.success("Saat ini tidak ada mahasiswa yang masuk dalam kategori Berisiko Tinggi.")
+                # if 'Prediction' in df_wr.columns:
+                #     df_kritis = df_wr[df_wr['Prediction'] == 'Berisiko Tinggi'].copy()
+                #     if not df_kritis.empty:
+                #         st.dataframe(df_kritis[['Nama_Mahasiswa', 'Department', 'Timestamp', 'GPA', 'Stress_Level', 'Keterangan', 'Status_Kasus']], use_container_width=True)
+                #         st.warning("Wakil Rektor dapat merekomendasikan pemanggilan resmi bagi mahasiswa dalam daftar di atas apabila terindikasi mangkir atau tidak hadir dalam 2 sesi panggilan konseling berturut-turut dari Tim BK.")
+                #     else:
+                #         st.success("Saat ini tidak ada mahasiswa yang masuk dalam kategori Berisiko Tinggi.")
                 
                 st.markdown("---")
                 st.subheader("Unduh Laporan Eksekutif Wakil Rektor")
