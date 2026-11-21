@@ -619,105 +619,105 @@ else:
     # MENU 3.5: DASHBOARD EKSEKUTIF WAKIL REKTOR
     # ==========================================
     elif menu == "Dashboard Eksekutif Wakil Rektor":
-       st.subheader("Dashboard Review Laporan Bimbingan Konseling")
-       st.write("Halaman ini menyajikan ringkasan review laporan hasil penanganan Bimbingan Konseling (BK) secara menyeluruh untuk keperluan pemantauan pimpinan.")
+        st.subheader("Dashboard Review Laporan Bimbingan Konseling")
+        st.write("Halaman ini menyajikan ringkasan review laporan hasil penanganan Bimbingan Konseling (BK) secara menyeluruh untuk keperluan pemantauan pimpinan.")
 
-    csv_file = "student_predictions.csv"
-    if os.path.exists(csv_file):
-        df_wr = pd.read_csv(csv_file)
+        csv_file = "student_predictions.csv"
+        if os.path.exists(csv_file):
+            df_wr = pd.read_csv(csv_file)
 
-        if not df_wr.empty:
-            # Normalisasi kolom opsional agar aman jika belum ada di CSV lama
-            if "Kategori_Masalah" not in df_wr.columns:
-                df_wr["Kategori_Masalah"] = "Tidak Tercatat"
-            if "Status_Kasus" not in df_wr.columns:
-                df_wr["Status_Kasus"] = "Dalam Proses"
-            if "Status_Akademik" not in df_wr.columns:
-                df_wr["Status_Akademik"] = "Aktif"
+            if not df_wr.empty:
+                # Normalisasi kolom opsional agar aman jika belum ada di CSV lama
+                if "Kategori_Masalah" not in df_wr.columns:
+                    df_wr["Kategori_Masalah"] = "Tidak Tercatat"
+                if "Status_Kasus" not in df_wr.columns:
+                    df_wr["Status_Kasus"] = "Dalam Proses"
+                if "Status_Akademik" not in df_wr.columns:
+                    df_wr["Status_Akademik"] = "Aktif"
 
-            df_wr["Timestamp"] = pd.to_datetime(df_wr["Timestamp"], errors="coerce")
-            df_wr["Bulan"] = df_wr["Timestamp"].dt.strftime("%Y-%m").fillna("Belum Tercatat")
+                df_wr["Timestamp"] = pd.to_datetime(df_wr["Timestamp"], errors="coerce")
+                df_wr["Bulan"] = df_wr["Timestamp"].dt.strftime("%Y-%m").fillna("Belum Tercatat")
 
-            # 1. KARTU METRIK RINGKASAN
-            total_konsul = len(df_wr)
-            akademik_count = int((df_wr["Kategori_Masalah"] == "Akademik").sum())
-            non_akademik_count = int((df_wr["Kategori_Masalah"] == "Non Akademik").sum())
-            selesai_count = int((df_wr["Status_Kasus"] == "Selesai").sum())
-            belum_selesai_count = total_konsul - selesai_count
-            dropout_count = int(
-                df_wr["Status_Akademik"]
-                .astype(str)
-                .str.contains("Mengundurkan Diri|Dropout|DO", case=False, na=False)
-                .sum()
-            )
+                # 1. KARTU METRIK RINGKASAN
+                total_konsul = len(df_wr)
+                akademik_count = int((df_wr["Kategori_Masalah"] == "Akademik").sum())
+                non_akademik_count = int((df_wr["Kategori_Masalah"] == "Non Akademik").sum())
+                selesai_count = int((df_wr["Status_Kasus"] == "Selesai").sum())
+                belum_selesai_count = total_konsul - selesai_count
+                dropout_count = int(
+                    df_wr["Status_Akademik"]
+                    .astype(str)
+                    .str.contains("Mengundurkan Diri|Dropout|DO", case=False, na=False)
+                    .sum()
+                )
 
-            col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
-            col_m1.metric("Total Konsultasi", total_konsul)
-            col_m2.metric("Konsul Akademik", akademik_count)
-            col_m3.metric("Konsul Non-Akademik", non_akademik_count)
-            col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
-            col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
+                col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+                col_m1.metric("Total Konsultasi", total_konsul)
+                col_m2.metric("Konsul Akademik", akademik_count)
+                col_m3.metric("Konsul Non-Akademik", non_akademik_count)
+                col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
+                col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
 
-            st.markdown("---")
+                st.markdown("---")
 
-            # 2. GRAFIK REVIEW LAPORAN BK
-            col_g1, col_g2 = st.columns(2)
+                # 2. GRAFIK REVIEW LAPORAN BK
+                col_g1, col_g2 = st.columns(2)
 
-            with col_g1:
-                st.markdown("#### Rekap Konsultasi per Kategori Masalah")
-                df_kat = (
-                    df_wr.groupby("Kategori_Masalah", dropna=False)
+                with col_g1:
+                    st.markdown("#### Rekap Konsultasi per Kategori Masalah")
+                    df_kat = (
+                        df_wr.groupby("Kategori_Masalah", dropna=False)
+                        .size()
+                        .reset_index(name="Jumlah_Kasus")
+                    )
+                    fig_kat = px.bar(
+                        df_kat,
+                        x="Kategori_Masalah",
+                        y="Jumlah_Kasus",
+                        color="Kategori_Masalah",
+                        text="Jumlah_Kasus",
+                    )
+                    fig_kat.update_layout(showlegend=False)
+                    st.plotly_chart(fig_kat, use_container_width=True)
+
+                with col_g2:
+                    st.markdown("#### Status Penanganan Kasus oleh BK")
+                    df_status = (
+                        df_wr.groupby("Status_Kasus", dropna=False)
+                        .size()
+                        .reset_index(name="Jumlah_Kasus")
+                    )
+                    fig_status = px.pie(
+                        df_status,
+                        names="Status_Kasus",
+                        values="Jumlah_Kasus",
+                        hole=0.45,
+                    )
+                    st.plotly_chart(fig_status, use_container_width=True)
+
+                st.markdown("---")
+
+                # 3. TABEL REVIEW LAPORAN BK (REKAPITULASI RINGKAS)
+                st.markdown("#### Ringkasan Review Laporan Bimbingan Konseling")
+                df_review = (
+                    df_wr.groupby(["Bulan", "Kategori_Masalah", "Status_Kasus"], dropna=False)
                     .size()
-                    .reset_index(name="Jumlah_Kasus")
+                    .reset_index(name="Jumlah_Laporan")
                 )
-                fig_kat = px.bar(
-                    df_kat,
-                    x="Kategori_Masalah",
-                    y="Jumlah_Kasus",
-                    color="Kategori_Masalah",
-                    text="Jumlah_Kasus",
+                st.dataframe(df_review, use_container_width=True)
+
+                st.info(
+                    f"Ringkasan review: terdapat {selesai_count} kasus selesai dan {belum_selesai_count} kasus masih dalam penanganan Tim BK."
                 )
-                fig_kat.update_layout(showlegend=False)
-                st.plotly_chart(fig_kat, use_container_width=True)
-
-            with col_g2:
-                st.markdown("#### Status Penanganan Kasus oleh BK")
-                df_status = (
-                    df_wr.groupby("Status_Kasus", dropna=False)
-                    .size()
-                    .reset_index(name="Jumlah_Kasus")
-                )
-                fig_status = px.pie(
-                    df_status,
-                    names="Status_Kasus",
-                    values="Jumlah_Kasus",
-                    hole=0.45,
-                )
-                st.plotly_chart(fig_status, use_container_width=True)
-
-            st.markdown("---")
-
-            # 3. TABEL REVIEW LAPORAN BK (REKAPITULASI RINGKAS)
-            st.markdown("#### Ringkasan Review Laporan Bimbingan Konseling")
-            df_review = (
-                df_wr.groupby(["Bulan", "Kategori_Masalah", "Status_Kasus"], dropna=False)
-                .size()
-                .reset_index(name="Jumlah_Laporan")
-            )
-            st.dataframe(df_review, use_container_width=True)
-
-            st.info(
-                f"Ringkasan review: terdapat {selesai_count} kasus selesai dan {belum_selesai_count} kasus masih dalam penanganan Tim BK."
-            )
+            else:
+                st.info("Belum ada data laporan konsultasi yang masuk untuk direview.")
         else:
-            st.info("Belum ada data laporan konsultasi yang masuk untuk direview.")
-    else:
-        st.warning("File data `student_predictions.csv` belum tersedia.")
+            st.warning("File data `student_predictions.csv` belum tersedia.")
 
     # ==========================================
     # MENU 4: VISUALISASI & ANALISIS DATA
     # ==========================================
-        elif menu == "Visualisasi & Analisis Data":
+    elif menu == "Visualisasi & Analisis Data":
         st.subheader("Visualisasi & Analisis Data Keseluruhan")
         csv_file = 'student_predictions.csv'
         if os.path.exists(csv_file):
@@ -739,7 +739,7 @@ else:
     # ==========================================
     # MENU 5: TENTANG DATASET & FITUR (DIKEMASKINI DENGAN TABEL VARIABEL)
     # ==========================================
-        elif menu == "Tentang Dataset & Fitur":
+    elif menu == "Tentang Dataset & Fitur":
         st.subheader("Tentang Sistem EWS Akademik")
         st.write("Purwarupa ini dikembangkan untuk mendukung penelitian skripsi dalam mengintegrasikan kuesioner mahasiswa dengan instrumen Bimbingan Konseling dan pengawasan eksekutif pimpinan universitas berbasis *Machine Learning*.")
         
