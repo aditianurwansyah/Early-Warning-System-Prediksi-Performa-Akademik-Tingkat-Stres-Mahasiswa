@@ -676,19 +676,19 @@ else:
                 #     else:
                 #         st.success("Saat ini tidak ada mahasiswa yang masuk dalam kategori Berisiko Tinggi.")
                 
-                st.markdown("---")
-                st.subheader("Unduh Laporan Eksekutif Wakil Rektor")
-                excel_wr = generate_excel_report(df_wr)
-                st.download_button(
-                    label="Unduh Rekapitulasi Eksekutif Lengkap (.xlsx)",
-                    data=excel_wr,
-                    file_name=f"Laporan_Eksekutif_Wakil_Rektor_{datetime.now().strftime('%Y-%m-%d')}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-            else:
-                st.info("Belum ada data rekam jejak konsultasi di dalam sistem.")
-        else:
-            st.info("Belum ada file data riwayat prediksi.")
+        #         st.markdown("---")
+        #         st.subheader("Unduh Laporan Eksekutif Wakil Rektor")
+        #         excel_wr = generate_excel_report(df_wr)
+        #         st.download_button(
+        #             label="Unduh Rekapitulasi Eksekutif Lengkap (.xlsx)",
+        #             data=excel_wr,
+        #             file_name=f"Laporan_Eksekutif_Wakil_Rektor_{datetime.now().strftime('%Y-%m-%d')}.xlsx",
+        #             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        #         )
+        #     else:
+        #         st.info("Belum ada data rekam jejak konsultasi di dalam sistem.")
+        # else:
+        #     st.info("Belum ada file data riwayat prediksi.")
 
     # ==========================================
     # MENU 4: VISUALISASI & ANALISIS DATA
