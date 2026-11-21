@@ -508,7 +508,7 @@ else:
                col_m3.metric("Konsul Non-Akademik", non_akademik_count)
                col_m4.metric("Kasus Selesai", f"{selesai_count} / {total_konsul}")
                col_m5.metric("Mahasiswa DO", dropout_count, delta_color="inverse")
-        st.write("Berikut adalah rekapitulasi data mahasiswa beserta pengelolaan status kasus, status akademik, dan manajemen penghapusan data rekam jejak:")
+               st.write("Berikut adalah rekapitulasi data mahasiswa beserta pengelolaan status kasus, status akademik, dan manajemen penghapusan data rekam jejak:")
 
         csv_file = 'student_predictions.csv'
         default_columns = [
