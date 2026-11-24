@@ -702,7 +702,7 @@ else:
                 df_review = (
                     df_wr.groupby(["Bulan", "Kategori_Masalah", "Status_Kasus"], dropna=False)
                     .size()
-                    .reset_index(name="Jumlah_Laporan")
+                    .reset_index(drop=True)
                 )
                 st.dataframe(df_review, use_container_width=True)
 
