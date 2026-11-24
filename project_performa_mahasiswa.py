@@ -700,8 +700,10 @@ else:
                 # 3. TABEL REVIEW LAPORAN BK (REKAPITULASI RINGKAS)
                 st.markdown("#### Ringkasan Review Laporan Bimbingan Konseling")
                 df_review = (
-                    df_wr.groupby(["Bulan", "Kategori_Masalah", "Status_Kasus"], dropna=False)
-                    .size()
+                    df_wr[["Bulan", "Kategori_Masalah", "Status_Kasus"]]
+                    .fillna("Tidak Tercatat")
+                    .drop_duplicates()
+                    .sort_values(by=["Bulan", "Kategori_Masalah", "Status_Kasus"])
                     .reset_index(drop=True)
                 )
                 st.dataframe(df_review, use_container_width=True)
